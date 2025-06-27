@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using NotifierNotificationService.NotificationService.Domain.Entities;
 
-namespace Notifier.Notification.Service;
+namespace NotifierNotificationService.NotificationService.Infrastructure;
 
 public partial class NotifierContext : DbContext
 {

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
-namespace Notifier.Notification.Service;
+namespace NotifierNotificationService.NotificationService.Domain.Entities;
 
 public partial class User
 {
@@ -11,7 +12,9 @@ public partial class User
 
     public string PasswordHash { get; set; } = null!;
 
+    [JsonIgnore]
     public virtual ICollection<Notification> NotificationRecipientUsers { get; set; } = new List<Notification>();
 
+    [JsonIgnore]
     public virtual ICollection<Notification> NotificationSenderUsers { get; set; } = new List<Notification>();
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
-namespace Notifier.Notification.Service;
+namespace NotifierNotificationService.NotificationService.Domain.Entities;
+
 
 public partial class NotificationStatusLog
 {
@@ -13,7 +15,9 @@ public partial class NotificationStatusLog
 
     public DateTime CreatedAt { get; set; }
 
+    [JsonIgnore]
     public virtual Notification Notification { get; set; } = null!;
 
+    [JsonIgnore]
     public virtual Status Status { get; set; } = null!;
 }
