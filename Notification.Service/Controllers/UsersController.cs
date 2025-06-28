@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories;
+using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Interfaces;
 
 namespace NotifierNotificationService.NotificationService.Controllers
 

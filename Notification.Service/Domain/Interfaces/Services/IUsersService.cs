@@ -1,7 +1,6 @@
-﻿
-using NotifierNotificationService.NotificationService.Domain.Entities;
+﻿using NotifierNotificationService.NotificationService.Domain.Entities;
 
-namespace NotifierNotificationService.NotificationService.Domain.Interfaces
+namespace Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Services
 {
     public interface IUsersService
     {

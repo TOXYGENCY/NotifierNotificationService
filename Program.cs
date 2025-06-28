@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using NotifierNotificationService.NotificationService.Domain.Interfaces;
+using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories;
+using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Services;
+using Notifier.Notification.Service.Notification.Service.Services;
 using NotifierNotificationService.NotificationService.Infrastructure;
 using NotifierNotificationService.NotificationService.Services;
 using System.Text.Json.Serialization;
@@ -17,13 +19,19 @@ namespace NotifierNotificationService
             // Add services to the container.
 
             builder.Services.AddControllers()
-                .AddJsonOptions(options =>
-                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
+
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddTransient<IUsersRepository, UsersRepository>();
             builder.Services.AddTransient<IUsersService, UsersService>();
+            builder.Services.AddTransient<IStatusesRepository, StatusesRepository>();
+            builder.Services.AddTransient<IStatusesService, StatusesService>();
             builder.Services.AddDbContext<NotifierContext>(options =>
                 options.UseNpgsql(connectionString)
                     .UseLazyLoadingProxies());
