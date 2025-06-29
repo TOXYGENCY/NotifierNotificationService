@@ -1,18 +1,40 @@
+using Microsoft.EntityFrameworkCore;
+using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories;
+using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Services;
+using Notifier.Notification.Service.Notification.Service.Services;
+using NotifierNotificationService.NotificationService.Infrastructure;
+using NotifierNotificationService.NotificationService.Services;
+using System.Text.Json.Serialization;
 
-namespace Notifier.Notification.Service
+
+namespace NotifierNotificationService
 {
     public class Program
     {
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var connectionString = builder.Configuration.GetConnectionString("Main");
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
+
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddTransient<IUsersRepository, UsersRepository>();
+            builder.Services.AddTransient<IUsersService, UsersService>();
+            builder.Services.AddTransient<IStatusesRepository, StatusesRepository>();
+            builder.Services.AddTransient<IStatusesService, StatusesService>();
+            builder.Services.AddDbContext<NotifierContext>(options =>
+                options.UseNpgsql(connectionString)
+                    .UseLazyLoadingProxies());
 
             var app = builder.Build();
 
