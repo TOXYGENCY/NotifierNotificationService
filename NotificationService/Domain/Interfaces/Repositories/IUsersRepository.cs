@@ -4,6 +4,6 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Repo
 {
     public interface IUsersRepository : ICrud<User, Guid>
     {
-
+        Task<User?> GetByLoginAsync(string login);
     }
 }

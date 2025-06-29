@@ -2,6 +2,8 @@
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
+using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using Npgsql;
 
 namespace NotifierNotificationService.NotificationService.Controllers
 
@@ -19,8 +21,8 @@ namespace NotifierNotificationService.NotificationService.Controllers
             IUsersService usersService)
         {
             this.usersRepository = usersRepository;
-            this.logger = logger;
             this.usersService = usersService;
+            this.logger = logger;
         }
 
         [HttpGet]
@@ -28,7 +30,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         {
             try
             {
-                var users = await usersRepository.GetAllAsync();
+                var users = await usersService.GetAllUsersAsync();
                 return Ok(users);
             }
             catch (Exception ex)
@@ -44,7 +46,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         {
             try
             {
-                var user = await usersRepository.GetByIdAsync(userId);
+                var user = await usersService.GetUserByIdAsync(userId);
                 if (user == null) return StatusCode(StatusCodes.Status404NotFound);
 
                 return Ok(user);
@@ -58,7 +60,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         }
 
         [HttpPut("{userId}")]
-        public async Task<IActionResult> UpdateUserAsync(Guid userId, User updatedUser,
+        public async Task<IActionResult> UpdateUserAsync(Guid userId, UserDto updatedUser,
                                                             string? newPassword = null)
         {
             try
@@ -102,7 +104,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddUserAsync(User User, string password)
+        public async Task<ActionResult> AddUserAsync(UserDto User, string password)
         {
             try
             {
@@ -124,8 +126,14 @@ namespace NotifierNotificationService.NotificationService.Controllers
             catch (ArgumentNullException ex)
             {
                 logger.LogError(ex, "Required data to add a user is not received.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Необходимые данные для добавления пользователя не получены.Обратитесь к администратору или попробуйте позже.");
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    "Необходимые данные для добавления пользователя не получены. Обратитесь к администратору или попробуйте позже.");
+            }
+            catch (ArgumentException ex)
+            {
+                logger.LogError(ex, $"User with login {User.Login} already exists.");
+                return StatusCode(StatusCodes.Status409Conflict,
+                    "Пользователь с таким логином уже существует. Выберите другой логин.");
             }
             catch (Exception ex)
             {

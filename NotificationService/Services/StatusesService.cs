@@ -25,7 +25,7 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <typeparam name="DEST"></typeparam>
         /// <param name="src"></param>
         /// <returns></returns>
-        public DEST JsonSerializationConvert<SRC, DEST>(SRC src)
+        private DEST JsonSerializationConvert<SRC, DEST>(SRC src)
         {
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
@@ -33,7 +33,7 @@ namespace NotifierNotificationService.NotificationService.Services
         public async Task<Status> FromDtoAsync(StatusDto statusDto)
         {
             if (statusDto == null) throw new ArgumentNullException(nameof(statusDto));
-            Status status;
+            Status? status;
 
             if (statusDto.Id == null)
                 status = await statusesRepository.GetByEngNameAsync(statusDto.EngName);
@@ -46,11 +46,6 @@ namespace NotifierNotificationService.NotificationService.Services
 
         public StatusDto ToDto(Status full)
         {
-            if (full is null)
-            {
-                throw new ArgumentNullException(nameof(full));
-            }
-
             return JsonSerializationConvert<Status, StatusDto>(full);
         }
 
