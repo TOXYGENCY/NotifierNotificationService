@@ -1,4 +1,4 @@
-﻿namespace Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories
+﻿namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories
 {
     public interface ICrud<T, ID> where T : class where ID : struct
     {

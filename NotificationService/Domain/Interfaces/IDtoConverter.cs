@@ -1,4 +1,4 @@
-﻿namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
+﻿namespace NotifierNotificationService.NotificationService.Domain.Interfaces
 {
     public interface IDtoConverter<Full, Dto>
     {

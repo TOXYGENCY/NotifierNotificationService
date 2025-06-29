@@ -1,6 +1,6 @@
 ﻿using NotifierNotificationService.NotificationService.Domain.Entities;
 
-namespace Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Services
+namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 {
     public interface IUsersService
     {
