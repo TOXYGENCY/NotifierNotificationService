@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories;
-using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Services;
-using Notifier.Notification.Service.Notification.Service.Services;
+using System.Text.Json.Serialization;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Infrastructure;
 using NotifierNotificationService.NotificationService.Services;
-using System.Text.Json.Serialization;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
 
 namespace NotifierNotificationService
@@ -32,6 +31,8 @@ namespace NotifierNotificationService
             builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<IStatusesRepository, StatusesRepository>();
             builder.Services.AddTransient<IStatusesService, StatusesService>();
+            builder.Services.AddTransient<INotificationsRepository, NotificationsRepository>();
+            builder.Services.AddTransient<INotificationsService, NotificationsService>();
             builder.Services.AddDbContext<NotifierContext>(options =>
                 options.UseNpgsql(connectionString)
                     .UseLazyLoadingProxies());

@@ -1,9 +1,9 @@
 ﻿using NotifierNotificationService.NotificationService.Domain.Entities;
 
-namespace Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories
+namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories
 {
     public interface IUsersRepository : ICrud<User, Guid>
     {
-
+        Task<User?> GetByLoginAsync(string login);
     }
 }

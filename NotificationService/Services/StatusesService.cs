@@ -1,11 +1,11 @@
-﻿using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories;
-using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Services;
+﻿using System.Text.Json;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Infrastructure;
-using System.Text.Json;
 
-namespace Notifier.Notification.Service.Notification.Service.Services
+namespace NotifierNotificationService.NotificationService.Services
 {
     public class StatusesService : IStatusesService
     {
@@ -25,7 +25,7 @@ namespace Notifier.Notification.Service.Notification.Service.Services
         /// <typeparam name="DEST"></typeparam>
         /// <param name="src"></param>
         /// <returns></returns>
-        public DEST JsonSerializationConvert<SRC, DEST>(SRC src)
+        private DEST JsonSerializationConvert<SRC, DEST>(SRC src)
         {
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
@@ -33,7 +33,7 @@ namespace Notifier.Notification.Service.Notification.Service.Services
         public async Task<Status> FromDtoAsync(StatusDto statusDto)
         {
             if (statusDto == null) throw new ArgumentNullException(nameof(statusDto));
-            Status status;
+            Status? status;
 
             if (statusDto.Id == null)
                 status = await statusesRepository.GetByEngNameAsync(statusDto.EngName);
@@ -46,11 +46,6 @@ namespace Notifier.Notification.Service.Notification.Service.Services
 
         public StatusDto ToDto(Status full)
         {
-            if (full is null)
-            {
-                throw new ArgumentNullException(nameof(full));
-            }
-
             return JsonSerializationConvert<Status, StatusDto>(full);
         }
 

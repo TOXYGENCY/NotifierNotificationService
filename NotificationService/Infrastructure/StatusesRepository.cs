@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Notifier.Notification.Service.Notification.Service.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Entities;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 
 namespace NotifierNotificationService.NotificationService.Infrastructure
 {
@@ -20,9 +20,13 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
         }
 
         public async Task DeleteAsync(short id)
-        {
-            сontext.Remove(await GetByIdAsync(id));
-            await сontext.SaveChangesAsync();
+        { 
+            var status = await GetByIdAsync(id);
+            if (status != null)
+            {
+                сontext.Remove(status);
+                await сontext.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<Status>> GetAllAsync()
@@ -30,12 +34,12 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
             return await сontext.Statuses.ToListAsync();
         }
 
-        public async Task<Status> GetByIdAsync(short id)
+        public async Task<Status?> GetByIdAsync(short id)
         {
             return await сontext.Statuses.FirstOrDefaultAsync(status => status.Id == id);
         }
 
-        public async Task<Status> GetByEngNameAsync(string engName)
+        public async Task<Status?> GetByEngNameAsync(string engName)
         {
             return await сontext.Statuses.FirstOrDefaultAsync(status => status.EngName == engName);
         }
