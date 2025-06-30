@@ -13,7 +13,7 @@ CREATE TABLE "notifications" (
     "recipient_user_id" UUID NOT NULL REFERENCES "users"("id"), -- Кому
     "sender_user_id" UUID NOT NULL REFERENCES "users"("id"), -- От кого\
     "message" TEXT NOT NULL,
-    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     PRIMARY KEY ("id")
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE "notification_status_log" (
     "id" UUID DEFAULT uuid_generate_v4() NOT NULL UNIQUE,
     "status_id" SMALLINT NOT NULL REFERENCES "statuses"("id"),
     "notification_id" UUID NOT NULL REFERENCES "notifications"("id"),
-    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     PRIMARY KEY ("id")
 );
 

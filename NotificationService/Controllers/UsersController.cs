@@ -26,7 +26,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
             try
             {
@@ -42,7 +42,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         }
 
         [HttpGet("{userId}")]
-        public async Task<ActionResult<User>> GetUserById(Guid userId)
+        public async Task<ActionResult<UserDto>> GetUserById(Guid userId)
         {
             try
             {
@@ -86,7 +86,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
 
 
         [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteUser(Guid userId)
+        public async Task<IActionResult> DeleteUserById(Guid userId)
         {
             try
             {
