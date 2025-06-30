@@ -42,7 +42,7 @@ public partial class NotifierContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Message).HasColumnName("message");
             entity.Property(e => e.RecipientUserId).HasColumnName("recipient_user_id");
@@ -70,7 +70,7 @@ public partial class NotifierContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.NotificationId).HasColumnName("notification_id");
             entity.Property(e => e.StatusId).HasColumnName("status_id");

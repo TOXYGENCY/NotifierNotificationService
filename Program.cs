@@ -31,6 +31,8 @@ namespace NotifierNotificationService
             builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<IStatusesRepository, StatusesRepository>();
             builder.Services.AddTransient<IStatusesService, StatusesService>();
+            builder.Services.AddTransient<INotificationsRepository, NotificationsRepository>();
+            builder.Services.AddTransient<INotificationsService, NotificationsService>();
             builder.Services.AddDbContext<NotifierContext>(options =>
                 options.UseNpgsql(connectionString)
                     .UseLazyLoadingProxies());
