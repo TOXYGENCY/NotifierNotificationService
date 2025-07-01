@@ -7,8 +7,8 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Serv
     {
         string HashPassword(string password);
         Task AddUserAsync(UserDto user, string password);
-        Task UpdateUserAsync(Guid userId, UserDto updatedUser, string? newPassword = null);
-        Task<UserDto> GetUserByIdAsync(Guid userId);
+        Task UpdateUserAsync(UserDto updatedUser, string? newPassword = null);
+        Task<UserDto?> GetUserByIdAsync(Guid userId);
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
         bool VerifyHashedPassword(string hashedPassword, string providedPassword);
     }

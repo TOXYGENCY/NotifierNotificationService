@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
 namespace NotifierNotificationService.NotificationService.Controllers
@@ -20,8 +20,8 @@ namespace NotifierNotificationService.NotificationService.Controllers
             IStatusesService statusesService)
         {
             this.statusesRepository = statusesRepository;
-            this.logger = logger;
             this.statusesService = statusesService;
+            this.logger = logger;
         }
 
         [HttpGet]
@@ -29,7 +29,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         {
             try
             {
-                var statuses = await statusesRepository.GetAllAsync();
+                var statuses = await statusesService.GetAllStatusesAsync();
                 return Ok(statuses);
             }
             catch (Exception ex)
@@ -37,6 +37,26 @@ namespace NotifierNotificationService.NotificationService.Controllers
                 logger.LogError(ex, "An unexpected error occurred while retrieving all statuses.");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при получении всех статусов. Обратитесь к администратору или попробуйте позже.");
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AddStatusAsync(StatusDto statusDto)
+        {
+            try
+            {
+                if (statusDto is null) throw new ArgumentNullException(nameof(statusDto));
+
+                await statusesService.AddStatusAsync(statusDto);
+                logger.LogInformation($"Status {statusDto.EngName} ({statusDto.Id}) created.");
+
+                return Ok();
+            }
+            catch (Exception ex) // ArgumentNullException тоже считается непредвиденной в данном случае
+            {
+                logger.LogError(ex, "An unexpected error occurred while adding the status.");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Возникла непредвиденная ошибка при добавлении статуса. Обратитесь к администратору или попробуйте позже.");
             }
         }
 
@@ -59,28 +79,25 @@ namespace NotifierNotificationService.NotificationService.Controllers
         }
 
         [HttpPut("{statusId}")]
-        public async Task<IActionResult> UpdateStatusAsync(StatusDto updatedStatusDto)
+        public async Task<IActionResult> UpdateStatusAsync(short statusId, StatusDto updatedStatusDto)
         {
-
             try
             {
-                if (updatedStatusDto is null)
-                {
-                    throw new ArgumentNullException(nameof(updatedStatusDto));
-                }
+                if (updatedStatusDto is null) throw new ArgumentNullException(nameof(updatedStatusDto));
+                if (statusId != updatedStatusDto.Id) return StatusCode(StatusCodes.Status403Forbidden, "Id не совпадают.");
 
                 await statusesService.UpdateServiceAsync(updatedStatusDto);
-                logger.LogInformation($"statusDto {updatedStatusDto.EngName} updated");
+                logger.LogInformation($"Status {updatedStatusDto.EngName} ({updatedStatusDto.Id}) updated.");
 
                 return Ok();
             }
             catch (KeyNotFoundException ex)
             {
-                logger.LogError(ex, "statusDto not found");
-                return StatusCode(StatusCodes.Status500InternalServerError,
+                logger.LogError(ex, $"Status ({updatedStatusDto.Id}) not found");
+                return StatusCode(StatusCodes.Status404NotFound,
                     "Статус не найден.");
             }
-            catch (Exception ex)
+            catch (Exception ex) 
             {
                 logger.LogError(ex, "An unexpected error occurred while updating the status");
                 return StatusCode(StatusCodes.Status500InternalServerError,
@@ -95,43 +112,21 @@ namespace NotifierNotificationService.NotificationService.Controllers
             try
             {
                 await statusesRepository.DeleteAsync(statusId);
-                logger.LogInformation($"statusDto with id = {statusId} has been deleted");
+                logger.LogInformation($"Status with id = {statusId} has been deleted");
 
                 return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                logger.LogError(ex, $"Status ({statusId}) not found");
+                return StatusCode(StatusCodes.Status404NotFound,
+                    "Статус не найден.");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An unexpected error occurred while deleting the status.");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при удалении статуса. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> AddStatusAsync(StatusDto statusDto)
-        {
-            try
-            {
-                if (statusDto is null)
-                {
-                    throw new ArgumentNullException(nameof(statusDto));
-                }
-                await statusesService.AddStatusAsync(statusDto);
-                logger.LogInformation($"status {statusDto.EngName} created");
-
-                return Ok();
-            }
-            catch (ArgumentNullException ex)
-            {
-                logger.LogError(ex, "Required data to add a status is not received.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Необходимые данные для добавления статуса не получены.Обратитесь к администратору или попробуйте позже.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while adding the status.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при добавлении статуса. Обратитесь к администратору или попробуйте позже.");
             }
         }
     }

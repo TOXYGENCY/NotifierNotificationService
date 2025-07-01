@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using System.Text.Json;
 
 namespace NotifierNotificationService.NotificationService.Services
@@ -21,7 +21,6 @@ namespace NotifierNotificationService.NotificationService.Services
         public bool VerifyHashedPassword(string hashedPassword, string providedPassword)
         {
             var result = hasher.VerifyHashedPassword(null, hashedPassword, providedPassword);
-            // Проверка данных и выдача at + rt + данных пользователя, если успех
             if (result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded)
                 return true;
             else
@@ -34,59 +33,67 @@ namespace NotifierNotificationService.NotificationService.Services
             return hasher.HashPassword(null, password); // null, а не User, потому что в этой реализации .HashPassword аргумент newUserDto не используется
         }
 
-        public async Task UpdateUserAsync(Guid userId, UserDto updatedUser, string? newPassword = null)
-        {
-            if (updatedUser == null || userId == null) throw new ArgumentNullException("Не все аргументы переданы.");
-            if (updatedUser.Id != userId) throw new ArgumentException("ID не совпадают.");
-
-            // Получаем текущего пользователя из репозитория
-            var user = await usersRepository.GetByIdAsync(userId);
-            if (user == null) throw new InvalidOperationException($"Пользователь с Id = {userId} не найден.");
-
-            // Обновляем поля, которые должны измениться
-            user.Login = updatedUser.Login;
-
-            // Обновляем пароль, если он был передан
-            if (!string.IsNullOrWhiteSpace(newPassword))
-                // Хешируем пароль перед сохранением
-                user.PasswordHash = HashPassword(newPassword);
-
-            await usersRepository.UpdateAsync(user);
-        }
-
         public async Task AddUserAsync(UserDto newUserDto, string password)
         {
             if (newUserDto is null) throw new ArgumentNullException(nameof(newUserDto));
             var existingUser = await usersRepository.GetByLoginAsync(newUserDto.Login);
             if (existingUser != null) throw new ArgumentException(newUserDto.Login);
 
-            var newUser = await FromDtoAsync(newUserDto);
+            var newUser = FromDto(newUserDto);
             newUser.PasswordHash = HashPassword(password);
 
             await usersRepository.AddAsync(newUser);
         }
 
-        public async Task<User> FromDtoAsync(UserDto userDto)
+        public async Task UpdateUserAsync(UserDto updatedUser, string? newPassword = null)
         {
-            if (userDto is null) throw new ArgumentNullException(nameof(userDto));
+            if (updatedUser == null) throw new ArgumentNullException(nameof(updatedUser));
 
+            // Получаем текущего пользователя из репозитория
+            var user = await usersRepository.GetByIdAsync(updatedUser.Id);
+            if (user == null) throw new InvalidOperationException($"Пользователь с Id = {updatedUser.Id} не найден.");
+
+            // Обновляем поля, которые должны измениться
+            user.Login = updatedUser.Login;
+
+            // Обновляем пароль, если он был передан
+            if (!string.IsNullOrWhiteSpace(newPassword))
+                user.PasswordHash = HashPassword(newPassword);
+
+            await usersRepository.UpdateAsync(user);
+        }
+
+        public async Task<User?> FromDtoAsync(UserDto? userDto)
+        {
+            if (userDto is null) return null;
             var user = await usersRepository.GetByIdAsync(userDto.Id);
 
-            user ??= JsonSerializationConvert<UserDto, User>(userDto);
+            user ??= FromDto(userDto);
             return user;
         }
 
-        public UserDto ToDto(User user)
+        public User? FromDto(UserDto? userDto)
         {
-            if (user is null) throw new ArgumentNullException(nameof(user));
+            if (userDto is null) return null;
 
+            if (userDto.Id == null)
+                // TODO: разобраться подробнее как быть с Guid
+                userDto.Id = Guid.Empty;
+
+            var user = JsonSerializationConvert<UserDto, User>(userDto);
+            // TODO: это надо?
+            user.PasswordHash ??= "";
+            return user;
+        }
+
+        public UserDto? ToDto(User? user)
+        {
             return JsonSerializationConvert<User, UserDto>(user);
         }
 
-        public IEnumerable<UserDto> ToDtos(IEnumerable<User> users)
+        public IEnumerable<UserDto>? ToDtos(IEnumerable<User>? users)
         {
-            if (users is null) throw new ArgumentNullException(nameof(users));
-
+            if (users is null) return null;
             var userDtos = new List<UserDto>();
 
             foreach (var user in users)
@@ -102,12 +109,13 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <typeparam name="DEST"></typeparam>
         /// <param name="src"></param>
         /// <returns></returns>
-        private DEST JsonSerializationConvert<SRC, DEST>(SRC src)
+        private DEST? JsonSerializationConvert<SRC, DEST>(SRC? src)
         {
+            if (src == null) return default(DEST);
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
-
-        public async Task<UserDto> GetUserByIdAsync(Guid userId)
+        
+        public async Task<UserDto?> GetUserByIdAsync(Guid userId)
         {
             var user = await usersRepository.GetByIdAsync(userId);
             return ToDto(user);

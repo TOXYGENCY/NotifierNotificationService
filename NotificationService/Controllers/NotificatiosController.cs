@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
-using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
-using Npgsql;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
 namespace NotifierNotificationService.NotificationService.Controllers
 
@@ -40,6 +38,32 @@ namespace NotifierNotificationService.NotificationService.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<ActionResult> AddNotificationAsync(NotificationDto notificationDto)
+        {
+            try
+            {
+                if (notificationDto is null) throw new ArgumentNullException(nameof(notificationDto));
+
+                await notificationsService.AddNotificationAsync(notificationDto);
+                logger.LogInformation($"Notification created");
+
+                return Ok();
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogError(ex, "Required data to add a notification is not received.");
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    "Необходимые данные для добавления уведомления не получены. Обратитесь к администратору или попробуйте позже.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while adding the notification.");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Возникла непредвиденная ошибка при добавлении уведомления. Обратитесь к администратору или попробуйте позже.");
+            }
+        }
+
         [HttpGet("{notificationId}")]
         public async Task<ActionResult<NotificationDto>> GetNotificationById(Guid notificationId)
         {
@@ -64,14 +88,14 @@ namespace NotifierNotificationService.NotificationService.Controllers
             try
             {
                 await notificationsService.UpdateNotificationAsync(notificationId, updatedNotification);
-                logger.LogInformation($"notificationDto {notificationId} updated");
+                logger.LogInformation($"Notification {notificationId} updated");
 
                 return Ok();
             }
             catch (KeyNotFoundException ex)
             {
-                logger.LogError(ex, "notificationDto not found");
-                return StatusCode(StatusCodes.Status500InternalServerError,
+                logger.LogError(ex, $"Notification {notificationId} not found");
+                return StatusCode(StatusCodes.Status404NotFound,
                     "Уведомление не найдено.");
             }
             catch (Exception ex)
@@ -89,44 +113,21 @@ namespace NotifierNotificationService.NotificationService.Controllers
             try
             {
                 await notificationsRepository.DeleteAsync(notificationId);
-                logger.LogInformation($"notificationDto with id = {notificationId} has been deleted");
+                logger.LogInformation($"Notification with id = {notificationId} has been deleted");
 
                 return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                logger.LogError(ex, $"Notification {notificationId} not found");
+                return StatusCode(StatusCodes.Status404NotFound,
+                    "Уведомление не найдено.");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An unexpected error occurred while deleting the notification.");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при удалении уведомления. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> AddNotificationAsync(NotificationDto notificationDto)
-        {
-            try
-            {
-                if (notificationDto is null)
-                {
-                    throw new ArgumentNullException(nameof(notificationDto));
-                }
-
-                await notificationsService.AddNotificationAsync(notificationDto);
-                logger.LogInformation($"Notification created");
-
-                return Ok();
-            }
-            catch (ArgumentNullException ex)
-            {
-                logger.LogError(ex, "Required data to add a notification is not received.");
-                return StatusCode(StatusCodes.Status400BadRequest,
-                    "Необходимые данные для добавления уведомления не получены. Обратитесь к администратору или попробуйте позже.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while adding the notification.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при добавлении уведомления. Обратитесь к администратору или попробуйте позже.");
             }
         }
     }

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Infrastructure;
 using NotifierNotificationService.NotificationService.Services;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
+using System.Text.Json.Serialization;
 
 
 namespace NotifierNotificationService

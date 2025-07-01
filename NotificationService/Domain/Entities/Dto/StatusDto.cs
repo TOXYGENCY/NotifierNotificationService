@@ -6,5 +6,5 @@ public partial class StatusDto
 
     public string? Name { get; set; }
 
-    public string EngName { get; set; }
+    public string EngName { get; set; } = null!;
 }

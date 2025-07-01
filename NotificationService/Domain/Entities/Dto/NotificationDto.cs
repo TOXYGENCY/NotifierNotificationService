@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+﻿namespace NotifierNotificationService.NotificationService.Domain.Entities.Dto;
 
 
 public partial class NotificationDto

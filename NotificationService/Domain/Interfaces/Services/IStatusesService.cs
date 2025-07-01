@@ -5,6 +5,7 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Serv
 {
     public interface IStatusesService : IDtoConverter<Status, StatusDto>
     {
+        Task<IEnumerable<StatusDto>> GetAllStatusesAsync();
         Task UpdateServiceAsync(StatusDto updatedStatusDto);
         Task AddStatusAsync(StatusDto newStatusDto);
     }
