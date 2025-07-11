@@ -109,9 +109,8 @@ namespace NotifierNotificationService.NotificationService.Controllers
             try
             {
                 if (updatedUser is null) throw new ArgumentNullException(nameof(updatedUser));
-                if (userId != updatedUser.Id) throw new ArgumentException($"Id's don't match: {userId} != {updatedUser}.");
 
-                await usersService.UpdateUserAsync(updatedUser, newPassword);
+                await usersService.UpdateUserAsync(userId, updatedUser, newPassword);
                 logger.LogInformation($"User {updatedUser.Login} updated");
 
                 return Ok();

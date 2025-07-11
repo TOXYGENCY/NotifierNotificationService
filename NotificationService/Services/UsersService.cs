@@ -45,44 +45,61 @@ namespace NotifierNotificationService.NotificationService.Services
             await usersRepository.AddAsync(newUser);
         }
 
-        public async Task UpdateUserAsync(UserDto updatedUser, string? newPassword = null)
+        public async Task UpdateUserAsync(Guid userId, UserDto updatedUserDto, string? newPassword = null)
         {
-            if (updatedUser == null) throw new ArgumentNullException(nameof(updatedUser));
+            if (updatedUserDto is null || userId == Guid.Empty)
+                throw new ArgumentNullException(nameof(updatedUserDto));
 
-            // Получаем текущего пользователя из репозитория
-            var user = await usersRepository.GetByIdAsync(updatedUser.Id);
-            if (user == null) throw new InvalidOperationException($"Пользователь с Id = {updatedUser.Id} не найден.");
+            var user = await usersRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new InvalidOperationException($"Пользователь с Id = {userId} не найден.");
 
-            // Обновляем поля, которые должны измениться
-            user.Login = updatedUser.Login;
+            if (!string.IsNullOrEmpty(updatedUserDto.Login))
+                user.Login = updatedUserDto.Login;
 
-            // Обновляем пароль, если он был передан
-            if (!string.IsNullOrWhiteSpace(newPassword))
+            if (!string.IsNullOrEmpty(newPassword))
                 user.PasswordHash = HashPassword(newPassword);
 
             await usersRepository.UpdateAsync(user);
         }
 
-        public async Task<User?> FromDtoAsync(UserDto? userDto)
+        public async Task<User?> FromDtoToEntityAsync(Guid userId, UserDto? userDto)
         {
-            if (userDto is null) return null;
-            var user = await usersRepository.GetByIdAsync(userDto.Id);
+            // Сразу ищем в контексте.
+            var user = await usersRepository.GetByIdAsync(userId);
 
-            user ??= FromDto(userDto);
+            // Если dto не передан, то с ним работать не можем - возвращаем что есть
+            if (userDto is null) return user;
+
+            if (!String.IsNullOrEmpty(userDto.Login))
+                user ??= await usersRepository.GetByLoginAsync(userDto.Login);
+
+            // Если dto есть и нет объекта в БД - конвертируем
+            user ??= FromDto(userDto, user);
             return user;
         }
 
-        public User? FromDto(UserDto? userDto)
+        public User? FromDto(UserDto? userDto, User? baseForDto = null)
         {
-            if (userDto is null) return null;
+            if (userDto is null)
+                return null;
 
-            if (userDto.Id == null)
-                // TODO: разобраться подробнее как быть с Guid
-                userDto.Id = Guid.Empty;
+            // Создаём нового пользователя
+            var user = new User
+            {
+                Login = userDto.Login ?? "",
+                // Пароля нет в DTO
+                NotificationRecipientUsers = new List<Notification>(),
+                NotificationSenderUsers = new List<Notification>()
+            };
 
-            var user = JsonSerializationConvert<UserDto, User>(userDto);
-            // TODO: это надо?
-            user.PasswordHash ??= "";
+            if (baseForDto != null)
+            {
+                user.Login = baseForDto.Login;
+                user.PasswordHash = baseForDto.PasswordHash;
+                // Коллекции не трогаем - они остаются как есть
+            }
+
             return user;
         }
 
@@ -114,7 +131,7 @@ namespace NotifierNotificationService.NotificationService.Services
             if (src == null) return default(DEST);
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
-        
+
         public async Task<UserDto?> GetUserByIdAsync(Guid userId)
         {
             var user = await usersRepository.GetByIdAsync(userId);

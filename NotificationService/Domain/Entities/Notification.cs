@@ -1,10 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace NotifierNotificationService.NotificationService.Domain.Entities;
 
 
 public partial class Notification
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
 
     public Guid RecipientUserId { get; set; }
@@ -13,6 +15,7 @@ public partial class Notification
 
     public string Message { get; set; } = null!;
 
+    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime CreatedAt { get; set; }
 
     [JsonIgnore]

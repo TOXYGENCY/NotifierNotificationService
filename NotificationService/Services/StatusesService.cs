@@ -23,16 +23,33 @@ namespace NotifierNotificationService.NotificationService.Services
 
             await statusesRepository.AddAsync(newStatus);
         }
+        public async Task AddStatusAsync(string statusName, string statusEngName)
+        {
+            if (string.IsNullOrEmpty(statusName))
+            {
+                throw new ArgumentException($"'{nameof(statusName)}' cannot be null or empty.", nameof(statusName));
+            }
+
+            if (string.IsNullOrEmpty(statusEngName))
+            {
+                throw new ArgumentException($"'{nameof(statusEngName)}' cannot be null or empty.", nameof(statusEngName));
+            }
+
+            var newStatus = new StatusDto { Name = statusName, EngName = statusEngName };
+
+            await statusesRepository.AddAsync(FromDto(newStatus));
+        }
 
         public async Task UpdateServiceAsync(StatusDto updatedStatusDto)
         {
             if (updatedStatusDto is null) throw new ArgumentNullException(nameof(updatedStatusDto));
+            if (updatedStatusDto.Id is null) throw new ArgumentNullException(nameof(updatedStatusDto.Id));
 
-            var currentStatus = await FromDtoAsync(updatedStatusDto);
+            var currentStatus = await FromDtoToEntityAsync(updatedStatusDto.Id.Value, updatedStatusDto);
             var updatedStatus = currentStatus;
 
             updatedStatus.Name = updatedStatusDto.Name;
-            updatedStatus.EngName = updatedStatusDto.EngName;
+            updatedStatus.EngName = updatedStatusDto.EngName.Trim();
 
             await statusesRepository.UpdateAsync(updatedStatus);
         }
@@ -42,29 +59,42 @@ namespace NotifierNotificationService.NotificationService.Services
             return ToDtos(await statusesRepository.GetAllAsync());
         }
 
-        public Status? FromDto(StatusDto? statusDto)
+        public Status? FromDto(StatusDto? statusDto, Status? baseForDto = null)
         {
             if (statusDto is null) return null;
 
-            // TODO: так можно?
-            statusDto.Id ??= -1;
-            statusDto.Name ??= statusDto.EngName;
+            // Проверка обязательного поля
+            if (string.IsNullOrWhiteSpace(statusDto.EngName))
+                throw new ArgumentException("EngName cannot be empty", nameof(statusDto));
 
-            var status = JsonSerializationConvert<StatusDto, Status>(statusDto);
+            var status = baseForDto ?? new Status();
+
+            // Обновление полей
+            status.Name = !string.IsNullOrWhiteSpace(statusDto.Name)
+                ? statusDto.Name
+                : statusDto.EngName;
+            status.EngName = statusDto.EngName.Trim(); // Очистка пробелов
+
             return status;
         }
 
-        public async Task<Status?> FromDtoAsync(StatusDto? statusDto)
+        public async Task<Status?> FromDtoToEntityAsync(short statusId, StatusDto? statusDto = null)
         {
-            if (statusDto == null) return null;
-            Status? status;
+            Status? status = null;
 
-            if (statusDto.Id == null)
+            // Поиск по приоритетам: ID > EngName
+            if (statusId >= 0)
+                status = await statusesRepository.GetByIdAsync(statusId);
+            else if (!string.IsNullOrWhiteSpace(statusDto.EngName))
                 status = await statusesRepository.GetByEngNameAsync(statusDto.EngName);
-            else
-                status = await statusesRepository.GetByIdAsync(statusDto.Id.Value);
 
-            status ??= FromDto(statusDto);
+            // Если dto не передан, то с ним работать не можем - возвращаем что есть
+            if (statusDto is null)
+                return status;
+
+            // Если dto передан - обновляем поля
+            FromDto(statusDto, status);
+
             return status;
         }
 

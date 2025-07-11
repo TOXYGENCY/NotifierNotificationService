@@ -3,7 +3,7 @@ using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
 
 namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 {
-    public interface INotificationsService : IDtoConverter<Notification, NotificationDto>
+    public interface INotificationsService : IDtoConverter<Notification, NotificationDto, Guid>
     {
         Task AddNotificationAsync(NotificationDto newNotificationDto);
         Task<IEnumerable<NotificationDto>> GetAllNotificationsAsync();

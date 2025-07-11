@@ -1,9 +1,11 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace NotifierNotificationService.NotificationService.Domain.Entities;
 
 public partial class Status
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
 
     public string? Name { get; set; }

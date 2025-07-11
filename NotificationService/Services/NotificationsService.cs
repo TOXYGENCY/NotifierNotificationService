@@ -2,6 +2,7 @@
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
+using NotifierNotificationService.NotificationService.Infrastructure;
 using System.Text.Json;
 
 namespace NotifierNotificationService.NotificationService.Services
@@ -17,17 +18,9 @@ namespace NotifierNotificationService.NotificationService.Services
         public async Task AddNotificationAsync(NotificationDto newNotificationDto)
         {
             if (newNotificationDto is null) throw new ArgumentNullException(nameof(newNotificationDto));
-            if (newNotificationDto.Id != null)
-            {
-                var existingNotification = await notificationsRepository.GetByIdAsync(newNotificationDto.Id.Value);
-                if (existingNotification != null) 
-                    throw new ArgumentException($"Notification with id = {newNotificationDto.Id.Value} already exists.");
-            }
 
-            if (newNotificationDto.CreatedAt <= DateTime.MinValue) 
+            if (newNotificationDto.CreatedAt <= DateTime.MinValue)
                 throw new ArgumentException($"Неверное время DateTime: {newNotificationDto.CreatedAt}");
-
-            // TODO: проверка на существования пользователей
 
             var newNotification = FromDto(newNotificationDto);
 
@@ -36,21 +29,19 @@ namespace NotifierNotificationService.NotificationService.Services
 
         public async Task UpdateNotificationAsync(Guid notificationId, NotificationDto updatedNotificationDto)
         {
-            if (updatedNotificationDto == null || updatedNotificationDto.Id == null) throw new ArgumentNullException("Не все аргументы переданы.");
-            if (updatedNotificationDto.Id != notificationId) throw new ArgumentException("ID не совпадают.");
+            if (updatedNotificationDto == null || notificationId.Equals(Guid.Empty))
+                throw new ArgumentNullException("Не все аргументы переданы.");
 
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
             if (notification == null) throw new InvalidOperationException($"Уведомление с Id = {notificationId} не найдено.");
 
-            // TODO: исчезают виртуальные EF-свойства - понять проблема ли это
-            var updatedNotification = FromDto(updatedNotificationDto);
+            var updatedNotification = FromDto(updatedNotificationDto, notification);
             await notificationsRepository.UpdateAsync(updatedNotification);
         }
 
         public async Task<NotificationDto?> GetNotificationByIdAsync(Guid notificationId)
         {
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
-            // TODO: решить вот с этим
             if (notification is null) return null;
             return ToDto(notification);
         }
@@ -61,31 +52,69 @@ namespace NotifierNotificationService.NotificationService.Services
             return ToDtos(notifications);
         }
 
-        public async Task<Notification?> FromDtoAsync(NotificationDto? notificationDto)
+        /// <summary>
+        /// Ищет EF-объект по Id в базе данных (EF-контексте).
+        /// </summary>
+        /// <param name="notificationId">обязательный параметр Id для поиска.</param>
+        /// <param name="notificationDto">(опционально) объект, который стоит конвертировать в новый, 
+        /// при отсустствии в контексте.</param>
+        /// <returns> EF-объект из базы данных (EF-контекста). В случае, если он не найден, 
+        /// то конвертирует notificationDto (при наличии) в новый объект (вне контекста).
+        /// Возвращает null, если объект не найден в контексте И если DTO-объект отсутствует.
+        /// </returns>
+        /// <exception cref="ArgumentException"></exception>
+        public async Task<Notification?> FromDtoToEntityAsync(Guid notificationId, NotificationDto? notificationDto)
         {
-            if (notificationDto is null) return null;
-            Notification? notification = null;
 
-            if (notificationDto.Id != null)
-                notification = await notificationsRepository.GetByIdAsync(notificationDto.Id.Value);
+            if (notificationId.Equals(Guid.Empty))
+                throw new ArgumentException(nameof(notificationId));
 
-            // TODO: что с Guid? он станет пустой после сериализации (если он null) или нет?
+            var notification = await notificationsRepository.GetByIdAsync(notificationId);
+
+            // Если dto не передан, то с ним работать не можем - возвращаем что есть
+            if (notificationDto == null)
+                return notification;
+
+            // если dto есть и нет объекта в БД - конвертируем
             notification ??= FromDto(notificationDto);
+
             return notification;
         }
 
-        public Notification? FromDto(NotificationDto? notificationDto)
+        /// <summary>
+        /// Конвертирует NotificationDto в Notification
+        /// </summary>
+        /// <param name="notificationDto"></param>
+        /// <param name="baseForDto">Основа для установки значений из DTO.</param>
+        /// <returns>
+        /// Новый (вне EF) объект Notification на основе baseForDto (при наличии).
+        /// null если NotificationDto = null.
+        /// </returns>
+        public Notification? FromDto(NotificationDto? notificationDto, Notification? baseForDto = null)
         {
             if (notificationDto is null) return null;
+            Notification notification;
 
-            if (notificationDto.Id == null)
-                // TODO: разобраться подробнее как быть с Guid
-                notificationDto.Id = Guid.Empty;
-
-            if (notificationDto.CreatedAt == null)
-                notificationDto.CreatedAt = DateTime.MinValue;
-
-            var notification = JsonSerializationConvert<NotificationDto, Notification>(notificationDto);
+            notification = new Notification
+            {
+                // Id не ставим - в любом случае он либо не нужен, либо БД сгенерирует (при добавлении)
+                RecipientUserId = notificationDto.RecipientUserId,
+                SenderUserId = notificationDto.SenderUserId,
+                Message = notificationDto.Message,
+                CreatedAt = notificationDto.CreatedAt ?? default(DateTime), // либо передан, либо стандартное значение
+                NotificationStatusLogs = new List<NotificationStatusLog>(),
+                RecipientUser = null!, // Будет заполнено при загрузке
+                SenderUser = null! // Будет заполнено при загрузке
+            };
+            if (baseForDto != null)
+            {
+                notification.Id = baseForDto.Id;
+                notification.CreatedAt = baseForDto.CreatedAt;
+                notification.SenderUser = baseForDto.SenderUser;
+                notification.RecipientUser = baseForDto.RecipientUser;
+                notification.NotificationStatusLogs = baseForDto.NotificationStatusLogs;
+            }
+            
             return notification;
         }
 
@@ -94,14 +123,25 @@ namespace NotifierNotificationService.NotificationService.Services
             return JsonSerializationConvert<Notification, NotificationDto>(notification);
         }
 
+        /// <summary>
+        /// Конвертирует коллекцию Notification в коллекцию NotificationDto
+        /// </summary>
+        /// <param name="notifications">Исходная коллекция</param>
+        /// <returns>
+        /// null если входной параметр null,
+        /// коллекцию DTO (пропускает null-элементы)
+        /// </returns>
         public IEnumerable<NotificationDto>? ToDtos(IEnumerable<Notification>? notifications)
         {
             if (notifications is null) return null;
             var notificationDtos = new List<NotificationDto>();
 
             foreach (var notification in notifications)
-                // TODO: что если добавится null?
-                notificationDtos.Add(ToDto(notification));
+            {
+                var notificationDto = ToDto(notification);
+                if (notificationDto is null) continue;
+                notificationDtos.Add(notificationDto);
+            }
 
             return notificationDtos;
         }
@@ -115,7 +155,7 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <returns></returns>
         private DEST? JsonSerializationConvert<SRC, DEST>(SRC? src)
         {
-            if (src == null) return default(DEST); // TODO: узнать про это
+            if (src == null) return default(DEST);
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
     }

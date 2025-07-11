@@ -41,14 +41,23 @@ namespace NotifierNotificationService.NotificationService.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddStatusAsync(StatusDto statusDto)
+        public async Task<ActionResult> AddStatusAsync(string statusName, string statusEngName)
         {
+
             try
             {
-                if (statusDto is null) throw new ArgumentNullException(nameof(statusDto));
+                if (string.IsNullOrEmpty(statusName))
+                {
+                    throw new ArgumentException($"'{nameof(statusName)}' cannot be null or empty.", nameof(statusName));
+                }
 
-                await statusesService.AddStatusAsync(statusDto);
-                logger.LogInformation($"Status {statusDto.EngName} ({statusDto.Id}) created.");
+                if (string.IsNullOrEmpty(statusEngName))
+                {
+                    throw new ArgumentException($"'{nameof(statusEngName)}' cannot be null or empty.", nameof(statusEngName));
+                }
+
+                await statusesService.AddStatusAsync(statusName, statusEngName);
+                logger.LogInformation($"Status {statusEngName} created.");
 
                 return Ok();
             }

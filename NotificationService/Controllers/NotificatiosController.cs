@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
@@ -11,14 +12,17 @@ namespace NotifierNotificationService.NotificationService.Controllers
     public class NotificationsController : ControllerBase
     {
         private readonly INotificationsRepository notificationsRepository;
-        private readonly ILogger<NotificationsController> logger;
         private readonly INotificationsService notificationsService;
+        private readonly IUsersService usersService;
+        private readonly ILogger<NotificationsController> logger;
 
         public NotificationsController(INotificationsRepository notificationsRepository,
-            ILogger<NotificationsController> logger, INotificationsService notificationsService)
+            ILogger<NotificationsController> logger, INotificationsService notificationsService, 
+            IUsersService usersService)
         {
             this.notificationsRepository = notificationsRepository;
             this.notificationsService = notificationsService;
+            this.usersService = usersService;
             this.logger = logger;
         }
 
@@ -44,11 +48,21 @@ namespace NotifierNotificationService.NotificationService.Controllers
             try
             {
                 if (notificationDto is null) throw new ArgumentNullException(nameof(notificationDto));
+                if ((await usersService.GetUserByIdAsync(notificationDto.RecipientUserId) == null)
+                    || await usersService.GetUserByIdAsync(notificationDto.SenderUserId) == null)
+                    throw new KeyNotFoundException();
 
                 await notificationsService.AddNotificationAsync(notificationDto);
                 logger.LogInformation($"Notification created");
 
                 return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                logger.LogError(ex, 
+                    $"Recipient ({notificationDto.RecipientUserId}) or Sender ({notificationDto.SenderUserId}) is not found");
+                return StatusCode(StatusCodes.Status404NotFound,
+                    "Получателя не существует в системе.");
             }
             catch (ArgumentNullException ex)
             {
