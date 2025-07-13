@@ -27,14 +27,10 @@ namespace NotifierNotificationService.NotificationService.Services
         public async Task AddStatusAsync(string statusName, string statusEngName)
         {
             if (string.IsNullOrEmpty(statusName))
-            {
                 throw new ArgumentException($"'{nameof(statusName)}' cannot be null or empty.", nameof(statusName));
-            }
 
             if (string.IsNullOrEmpty(statusEngName))
-            {
                 throw new ArgumentException($"'{nameof(statusEngName)}' cannot be null or empty.", nameof(statusEngName));
-            }
 
             var newStatus = new StatusDto { Name = statusName, EngName = statusEngName };
 
@@ -79,8 +75,8 @@ namespace NotifierNotificationService.NotificationService.Services
 
             // Обновление полей
             status.Name = !string.IsNullOrWhiteSpace(statusDto.Name)
-                ? statusDto.Name
-                : statusDto.EngName;
+                ? statusDto.Name.Trim()
+                : statusDto.EngName.Trim();
             status.EngName = statusDto.EngName.Trim(); // Очистка пробелов
 
             return status;
@@ -93,7 +89,7 @@ namespace NotifierNotificationService.NotificationService.Services
             // Поиск по приоритетам: ID > EngName
             if (statusId >= 0)
                 status = await statusesRepository.GetByIdAsync(statusId);
-            else if (!string.IsNullOrWhiteSpace(statusDto.EngName))
+            else if (statusDto != null && !string.IsNullOrWhiteSpace(statusDto.EngName))
                 status = await statusesRepository.GetByEngNameAsync(statusDto.EngName);
 
             // Если dto не передан, то с ним работать не можем - возвращаем что есть
