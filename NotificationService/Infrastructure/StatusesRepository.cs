@@ -19,16 +19,6 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
             await сontext.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(short id)
-        { 
-            var status = await GetByIdAsync(id);
-            if (status != null)
-            {
-                сontext.Remove(status);
-                await сontext.SaveChangesAsync();
-            }
-        }
-
         public async Task<IEnumerable<Status>> GetAllAsync()
         {
             return await сontext.Statuses.ToListAsync();
@@ -51,6 +41,17 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
 
             сontext.Entry(currentStatus).CurrentValues.SetValues(updatedStatus);
             await сontext.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(short id)
+        {
+            var status = await GetByIdAsync(id);
+            if (status != null)
+            {
+                сontext.Remove(status);
+                await сontext.SaveChangesAsync();
+            }
+            else throw new KeyNotFoundException();
         }
     }
 }

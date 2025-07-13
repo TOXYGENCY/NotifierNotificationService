@@ -5,6 +5,11 @@ VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotifierNotificationService", "NotifierNotificationService.csproj", "{E96C06B9-086D-4105-8575-69164FA9CC19}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationServiceTests", "..\NotificationServiceTests\NotificationServiceTests.csproj", "{63126D06-4002-4081-B4BC-4E16BEFD318C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E96C06B9-086D-4105-8575-69164FA9CC19} = {E96C06B9-086D-4105-8575-69164FA9CC19}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +20,10 @@ Global
 		{E96C06B9-086D-4105-8575-69164FA9CC19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E96C06B9-086D-4105-8575-69164FA9CC19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E96C06B9-086D-4105-8575-69164FA9CC19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63126D06-4002-4081-B4BC-4E16BEFD318C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63126D06-4002-4081-B4BC-4E16BEFD318C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63126D06-4002-4081-B4BC-4E16BEFD318C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63126D06-4002-4081-B4BC-4E16BEFD318C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

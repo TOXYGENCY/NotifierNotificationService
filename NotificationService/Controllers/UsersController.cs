@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
-using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
-using Npgsql;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
 namespace NotifierNotificationService.NotificationService.Controllers
 
@@ -38,68 +36,6 @@ namespace NotifierNotificationService.NotificationService.Controllers
                 logger.LogError(ex, "An unexpected error occurred while retrieving all users.");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при получении всех пользователей. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<UserDto>> GetUserById(Guid userId)
-        {
-            try
-            {
-                var user = await usersService.GetUserByIdAsync(userId);
-                if (user == null) return StatusCode(StatusCodes.Status404NotFound);
-
-                return Ok(user);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while searching for the user");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при поиске пользователя. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-        [HttpPut("{userId}")]
-        public async Task<IActionResult> UpdateUserAsync(Guid userId, UserDto updatedUser,
-                                                            string? newPassword = null)
-        {
-            try
-            {
-                await usersService.UpdateUserAsync(userId, updatedUser, newPassword);
-                logger.LogInformation($"User {updatedUser.Login} updated");
-
-                return Ok();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                logger.LogError(ex, "User not found");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Пользователь не найден.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while updating the user");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при обновлении пользователя. Обратитесь к администратору или попробуйте позже.");
-            }
-        }
-
-
-        [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteUserById(Guid userId)
-        {
-            try
-            {
-                await usersRepository.DeleteAsync(userId);
-                logger.LogInformation($"User with id = {userId} has been deleted");
-
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An unexpected error occurred while deleting the user.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Возникла непредвиденная ошибка при удалении пользователя. Обратитесь к администратору или попробуйте позже.");
             }
         }
 
@@ -140,6 +76,81 @@ namespace NotifierNotificationService.NotificationService.Controllers
                 logger.LogError(ex, "An unexpected error occurred while adding the user.");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при добавлении пользователя. Обратитесь к администратору или попробуйте позже.");
+            }
+        }
+
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<UserDto>> GetUserById(Guid userId)
+        {
+            try
+            {
+                var user = await usersService.GetUserByIdAsync(userId);
+                if (user == null) throw new KeyNotFoundException();
+
+                return Ok(user);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                logger.LogError(ex, "User not found");
+                return StatusCode(StatusCodes.Status404NotFound,
+                    "Пользователь не найден.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while searching for the user");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Возникла непредвиденная ошибка при поиске пользователя. Обратитесь к администратору или попробуйте позже.");
+            }
+        }
+
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> UpdateUserAsync(Guid userId, UserDto updatedUser, string? newPassword = null)
+        {
+            try
+            {
+                if (updatedUser is null) throw new ArgumentNullException(nameof(updatedUser));
+
+                await usersService.UpdateUserAsync(userId, updatedUser, newPassword);
+                logger.LogInformation($"User {updatedUser.Login} updated");
+
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                logger.LogError(ex, "User not found");
+                return StatusCode(StatusCodes.Status404NotFound,
+                    "Пользователь не найден.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while updating the user");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Возникла непредвиденная ошибка при обновлении пользователя. Обратитесь к администратору или попробуйте позже.");
+            }
+        }
+
+
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> DeleteUserById(Guid userId)
+        {
+            try
+            {
+                await usersRepository.DeleteAsync(userId);
+                logger.LogInformation($"User with id = {userId} has been deleted");
+
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                logger.LogError(ex, "User not found");
+                return StatusCode(StatusCodes.Status404NotFound,
+                    "Пользователь не найден.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An unexpected error occurred while deleting the user.");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Возникла непредвиденная ошибка при удалении пользователя. Обратитесь к администратору или попробуйте позже.");
             }
         }
     }

@@ -1,21 +1,125 @@
-﻿using System.Text.Json;
-using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
-using NotifierNotificationService.NotificationService.Domain.Entities;
+﻿using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
-using NotifierNotificationService.NotificationService.Infrastructure;
+using System.Text.Json;
 
 namespace NotifierNotificationService.NotificationService.Services
 {
     public class StatusesService : IStatusesService
     {
         private readonly IStatusesRepository statusesRepository;
-        private readonly NotifierContext context;
 
-        public StatusesService(IStatusesRepository statusesRepository, NotifierContext context)
+        public StatusesService(IStatusesRepository statusesRepository)
         {
             this.statusesRepository = statusesRepository;
-            this.context = context;
+        }
+
+        public async Task AddStatusAsync(StatusDto newStatusDto)
+        {
+            if (newStatusDto is null) throw new ArgumentNullException(nameof(newStatusDto));
+
+            var newStatus = FromDto(newStatusDto);
+
+            await statusesRepository.AddAsync(newStatus);
+        }
+
+        public async Task AddStatusAsync(string statusName, string statusEngName)
+        {
+            if (string.IsNullOrEmpty(statusName))
+            {
+                throw new ArgumentException($"'{nameof(statusName)}' cannot be null or empty.", nameof(statusName));
+            }
+
+            if (string.IsNullOrEmpty(statusEngName))
+            {
+                throw new ArgumentException($"'{nameof(statusEngName)}' cannot be null or empty.", nameof(statusEngName));
+            }
+
+            var newStatus = new StatusDto { Name = statusName, EngName = statusEngName };
+
+            await statusesRepository.AddAsync(FromDto(newStatus));
+        }
+
+        public async Task<StatusDto?> GetStatusByIdAsync(short statusId)
+        {
+            var status = await statusesRepository.GetByIdAsync(statusId);
+            var statusDto = ToDto(status);
+            return statusDto;
+        }
+
+        public async Task UpdateServiceAsync(StatusDto updatedStatusDto)
+        {
+            if (updatedStatusDto is null) throw new ArgumentNullException(nameof(updatedStatusDto));
+            if (updatedStatusDto.Id is null) throw new ArgumentNullException(nameof(updatedStatusDto.Id));
+
+            var currentStatus = await FromDtoToEntityAsync(updatedStatusDto.Id.Value, updatedStatusDto);
+            var updatedStatus = currentStatus;
+
+            updatedStatus.Name = updatedStatusDto.Name;
+            updatedStatus.EngName = updatedStatusDto.EngName.Trim();
+
+            await statusesRepository.UpdateAsync(updatedStatus);
+        }
+
+        public async Task<IEnumerable<StatusDto>> GetAllStatusesAsync()
+        {
+            return ToDtos(await statusesRepository.GetAllAsync());
+        }
+
+        public Status? FromDto(StatusDto? statusDto, Status? baseForDto = null)
+        {
+            if (statusDto is null) return null;
+
+            // Проверка обязательного поля
+            if (string.IsNullOrWhiteSpace(statusDto.EngName))
+                throw new ArgumentException("EngName cannot be empty", nameof(statusDto));
+
+            var status = baseForDto ?? new Status();
+
+            // Обновление полей
+            status.Name = !string.IsNullOrWhiteSpace(statusDto.Name)
+                ? statusDto.Name
+                : statusDto.EngName;
+            status.EngName = statusDto.EngName.Trim(); // Очистка пробелов
+
+            return status;
+        }
+
+        public async Task<Status?> FromDtoToEntityAsync(short statusId, StatusDto? statusDto = null)
+        {
+            Status? status = null;
+
+            // Поиск по приоритетам: ID > EngName
+            if (statusId >= 0)
+                status = await statusesRepository.GetByIdAsync(statusId);
+            else if (!string.IsNullOrWhiteSpace(statusDto.EngName))
+                status = await statusesRepository.GetByEngNameAsync(statusDto.EngName);
+
+            // Если dto не передан, то с ним работать не можем - возвращаем что есть
+            if (statusDto is null)
+                return status;
+
+            // Если dto передан - обновляем поля
+            FromDto(statusDto, status);
+
+            return status;
+        }
+
+        public StatusDto? ToDto(Status? full)
+        {
+            return JsonSerializationConvert<Status, StatusDto>(full);
+        }
+
+        public IEnumerable<StatusDto>? ToDtos(IEnumerable<Status>? full)
+        {
+            if (full is null) return null;
+            var statusDtos = new List<StatusDto>();
+
+            foreach (var status in full)
+                statusDtos.Add(ToDto(status));
+
+            return statusDtos;
         }
 
         /// <summary>
@@ -25,70 +129,11 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <typeparam name="DEST"></typeparam>
         /// <param name="src"></param>
         /// <returns></returns>
-        private DEST JsonSerializationConvert<SRC, DEST>(SRC src)
+        private DEST? JsonSerializationConvert<SRC, DEST>(SRC? src)
         {
+            if (src == null) return default(DEST);
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
 
-        public async Task<Status> FromDtoAsync(StatusDto statusDto)
-        {
-            if (statusDto == null) throw new ArgumentNullException(nameof(statusDto));
-            Status? status;
-
-            if (statusDto.Id == null)
-                status = await statusesRepository.GetByEngNameAsync(statusDto.EngName);
-            else
-                status = await statusesRepository.GetByIdAsync(statusDto.Id.Value);
-
-            status ??= JsonSerializationConvert<StatusDto, Status>(statusDto);
-            return status;
-        }
-
-        public StatusDto ToDto(Status full)
-        {
-            return JsonSerializationConvert<Status, StatusDto>(full);
-        }
-
-        public IEnumerable<StatusDto> ToDtos(IEnumerable<Status> full)
-        {
-            if (full is null)
-            {
-                throw new ArgumentNullException(nameof(full));
-            }
-
-            var statusDtos = new List<StatusDto>();
-            foreach (var status in full)
-                statusDtos.Add(ToDto(status));
-
-            return statusDtos;
-        }
-
-        public async Task UpdateServiceAsync(StatusDto updatedStatusDto)
-        {
-            if (updatedStatusDto is null)
-            {
-                throw new ArgumentNullException(nameof(updatedStatusDto));
-            }
-
-            var currentStatus = await FromDtoAsync(updatedStatusDto);
-            var updatedStatus = currentStatus;
-
-            updatedStatus.Name = updatedStatusDto.Name;
-            updatedStatus.EngName = updatedStatusDto.EngName;
-
-            await statusesRepository.UpdateAsync(updatedStatus);
-        }
-
-        public async Task AddStatusAsync(StatusDto newStatusDto)
-        {
-            if (newStatusDto is null)
-            {
-                throw new ArgumentNullException(nameof(newStatusDto));
-            }
-
-            var newStatus = await FromDtoAsync(newStatusDto);
-
-            await statusesRepository.AddAsync(newStatus);
-        }
     }
 }

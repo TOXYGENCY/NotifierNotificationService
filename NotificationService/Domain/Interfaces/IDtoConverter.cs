@@ -1,10 +1,14 @@
-﻿namespace NotifierNotificationService.NotificationService.Domain.Interfaces
-{
-    public interface IDtoConverter<Full, Dto>
-    {
-        Task<Full> FromDtoAsync(Dto dto);
+﻿using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using System.Runtime.InteropServices;
 
-        Dto ToDto(Full full);
-        IEnumerable<Dto> ToDtos(IEnumerable<Full> full);
+namespace NotifierNotificationService.NotificationService.Domain.Interfaces
+{
+    public interface IDtoConverter<Full, Dto, IdType>
+    {
+        Task<Full?> FromDtoToEntityAsync(IdType id, Dto? dto);
+        Full? FromDto(Dto? dto, Full? baseForDto);
+
+        Dto? ToDto(Full? full);
+        IEnumerable<Dto>? ToDtos(IEnumerable<Full> full);
     }
 }

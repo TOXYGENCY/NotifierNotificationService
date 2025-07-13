@@ -19,16 +19,6 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
             await context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid id)
-        {
-            var user = await GetByIdAsync(id);
-            if (user != null)
-            {
-                context.Remove(user);
-                await context.SaveChangesAsync();
-            }
-        }
-
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             return await context.Users.ToListAsync();
@@ -51,6 +41,17 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
 
             context.Entry(currentUser).CurrentValues.SetValues(updatedUser);
             await context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var user = await GetByIdAsync(id);
+            if (user != null)
+            {
+                context.Remove(user);
+                await context.SaveChangesAsync();
+            }
+            else throw new KeyNotFoundException();
         }
     }
 }
