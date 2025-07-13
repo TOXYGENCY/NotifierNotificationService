@@ -9,5 +9,6 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Serv
         Task UpdateServiceAsync(StatusDto updatedStatusDto);
         //Task AddStatusAsync(StatusDto newStatusDto);
         Task AddStatusAsync(string statusName, string statusEngName);
+        Task<StatusDto?> GetStatusByIdAsync(short statusId);
     }
 }

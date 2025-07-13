@@ -23,6 +23,7 @@ namespace NotifierNotificationService.NotificationService.Services
 
             await statusesRepository.AddAsync(newStatus);
         }
+
         public async Task AddStatusAsync(string statusName, string statusEngName)
         {
             if (string.IsNullOrEmpty(statusName))
@@ -38,6 +39,13 @@ namespace NotifierNotificationService.NotificationService.Services
             var newStatus = new StatusDto { Name = statusName, EngName = statusEngName };
 
             await statusesRepository.AddAsync(FromDto(newStatus));
+        }
+
+        public async Task<StatusDto?> GetStatusByIdAsync(short statusId)
+        {
+            var status = await statusesRepository.GetByIdAsync(statusId);
+            var statusDto = ToDto(status);
+            return statusDto;
         }
 
         public async Task UpdateServiceAsync(StatusDto updatedStatusDto)
@@ -126,5 +134,6 @@ namespace NotifierNotificationService.NotificationService.Services
             if (src == null) return default(DEST);
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
+
     }
 }
