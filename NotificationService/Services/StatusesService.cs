@@ -44,15 +44,17 @@ namespace NotifierNotificationService.NotificationService.Services
             return statusDto;
         }
 
-        public async Task UpdateServiceAsync(StatusDto updatedStatusDto)
+        public async Task UpdateStatusAsync(StatusDto updatedStatusDto)
         {
             if (updatedStatusDto is null) throw new ArgumentNullException(nameof(updatedStatusDto));
             if (updatedStatusDto.Id is null) throw new ArgumentNullException(nameof(updatedStatusDto.Id));
+            if (updatedStatusDto.Id < 0) throw new ArgumentException(nameof(updatedStatusDto.Id));
 
             var currentStatus = await FromDtoToEntityAsync(updatedStatusDto.Id.Value, updatedStatusDto);
+            if (currentStatus is null) throw new KeyNotFoundException("Cannot update object that does not exist.");
             var updatedStatus = currentStatus;
 
-            updatedStatus.Name = updatedStatusDto.Name;
+            updatedStatus.Name = updatedStatusDto.Name.Trim();
             updatedStatus.EngName = updatedStatusDto.EngName.Trim();
 
             await statusesRepository.UpdateAsync(updatedStatus);
