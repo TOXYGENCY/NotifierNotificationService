@@ -1,5 +1,6 @@
 ﻿using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Infrastructure;
@@ -10,10 +11,12 @@ namespace NotifierNotificationService.NotificationService.Services
     public class NotificationsService : INotificationsService
     {
         private readonly INotificationsRepository notificationsRepository;
+        private readonly IRabbitPublisher rabbitmq;
 
-        public NotificationsService(INotificationsRepository notificationsRepository)
+        public NotificationsService(INotificationsRepository notificationsRepository, IRabbitPublisher rabbitmq)
         {
             this.notificationsRepository = notificationsRepository;
+            this.rabbitmq = rabbitmq;
         }
         public async Task AddNotificationAsync(NotificationDto newNotificationDto)
         {
@@ -24,6 +27,8 @@ namespace NotifierNotificationService.NotificationService.Services
 
             var newNotification = FromDto(newNotificationDto);
 
+            // TODO: добаавление в брокер 
+            await rabbitmq.PublishAsync<string>("", "123");
             await notificationsRepository.AddAsync(newNotification);
         }
 
@@ -43,6 +48,7 @@ namespace NotifierNotificationService.NotificationService.Services
         {
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
             if (notification is null) return null;
+            await rabbitmq.PublishAsync<string>("", "123");
             return ToDto(notification);
         }
 

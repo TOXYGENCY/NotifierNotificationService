@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Infrastructure;
@@ -14,7 +15,6 @@ namespace NotifierNotificationService
         {
             var builder = WebApplication.CreateBuilder(args);
             var connectionString = builder.Configuration.GetConnectionString("Main");
-
             // Add services to the container.
 
             builder.Services.AddControllers()
@@ -27,6 +27,7 @@ namespace NotifierNotificationService
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddSingleton<IRabbitPublisher, RabbitPublisher>();
             builder.Services.AddTransient<IUsersRepository, UsersRepository>();
             builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<IStatusesRepository, StatusesRepository>();
@@ -38,6 +39,8 @@ namespace NotifierNotificationService
                     .UseLazyLoadingProxies());
 
             var app = builder.Build();
+
+            app.Urls.Add("http://*:6121");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
