@@ -1,6 +1,7 @@
 ﻿using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using RabbitMQ.Client;
 using System.Text;
+using System.Text.Json;
 using System.Text.Unicode;
 
 namespace NotifierNotificationService.NotificationService.Infrastructure
@@ -14,7 +15,7 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
             this.configuration = configuration;
         }
 
-        public async Task PublishAsync<T>(T message, string queue)
+        public async Task PublishAsync<T>(T content, string queue)
         {
             var connfact = new ConnectionFactory
             {
@@ -26,13 +27,13 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
             using var conn = await connfact.CreateConnectionAsync();
             using var channel = await conn.CreateChannelAsync();
 
-            await channel.QueueDeclareAsync(queue: "hello world", durable: false, 
+            await channel.QueueDeclareAsync(queue: queue, durable: false, 
                 exclusive: false, autoDelete: false, arguments: null);
             
-            string mes = "Hello world!";
-            var body = Encoding.UTF8.GetBytes(mes);
+            string json = JsonSerializer.Serialize(content);
+            var body = Encoding.UTF8.GetBytes(json);
             
-            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello world", body: body);
+            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queue, body: body);
 
         }
     }

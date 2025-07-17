@@ -48,7 +48,7 @@ namespace NotifierNotificationService.NotificationService.Services
         {
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
             if (notification is null) return null;
-            await rabbitmq.PublishAsync<string>("", "123");
+            await rabbitmq.PublishAsync<Notification>(notification, "notifications");
             return ToDto(notification);
         }
 
