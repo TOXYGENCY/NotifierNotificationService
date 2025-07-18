@@ -8,20 +8,26 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
 {
     public class RabbitPublisher : IRabbitPublisher
     {
-        private readonly IConfiguration configuration;
+        private readonly IConfiguration config;
+        private string queue;
 
         public RabbitPublisher(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            this.config = configuration;
+            queue = config["RabbitMq:NotificationsQueueName"] ?? "notifications";
+        }
+        public async Task PublishAsync<T>(T content)
+        {
+            await PublishAsync<T>(content, queue);
         }
 
         public async Task PublishAsync<T>(T content, string queue)
         {
             var connfact = new ConnectionFactory
             {
-                HostName = configuration["RabbitMq:HostName"],
-                UserName = configuration["RabbitMq:UserName"],
-                Password = configuration["RabbitMq:Password"],
+                HostName = config["RabbitMq:HostName"],
+                UserName = config["RabbitMq:UserName"],
+                Password = config["RabbitMq:Password"],
             };
 
             using var conn = await connfact.CreateConnectionAsync();

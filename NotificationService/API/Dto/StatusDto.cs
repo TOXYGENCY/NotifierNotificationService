@@ -1,4 +1,4 @@
-﻿namespace NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+﻿namespace NotifierNotificationService.NotificationService.API.Dto;
 
 public partial class StatusDto
 {

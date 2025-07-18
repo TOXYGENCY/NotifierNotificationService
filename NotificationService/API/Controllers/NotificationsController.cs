@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
-namespace NotifierNotificationService.NotificationService.Controllers
+namespace NotifierNotificationService.NotificationService.API.Controllers
 
 {
     [Route("api/v1/notifications")]
@@ -13,17 +14,19 @@ namespace NotifierNotificationService.NotificationService.Controllers
     {
         private readonly INotificationsRepository notificationsRepository;
         private readonly INotificationsService notificationsService;
+        private readonly INotificationsManager notificationsManager;
         private readonly IUsersService usersService;
         private readonly ILogger<NotificationsController> logger;
 
         public NotificationsController(INotificationsRepository notificationsRepository,
-            ILogger<NotificationsController> logger, INotificationsService notificationsService, 
-            IUsersService usersService)
+            ILogger<NotificationsController> logger, INotificationsService notificationsService,
+            IUsersService usersService, INotificationsManager notificationsManager)
         {
             this.notificationsRepository = notificationsRepository;
             this.notificationsService = notificationsService;
             this.usersService = usersService;
             this.logger = logger;
+            this.notificationsManager = notificationsManager;
         }
 
         [HttpGet]
@@ -43,23 +46,23 @@ namespace NotifierNotificationService.NotificationService.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddNotificationAsync(NotificationDto notificationDto)
+        public async Task<ActionResult> CreateAndSendNotificationAsync(NotificationDto notificationDto)
         {
             try
             {
                 if (notificationDto is null) throw new ArgumentNullException(nameof(notificationDto));
-                if ((await usersService.GetUserByIdAsync(notificationDto.RecipientUserId) == null)
+                if (await usersService.GetUserByIdAsync(notificationDto.RecipientUserId) == null
                     || await usersService.GetUserByIdAsync(notificationDto.SenderUserId) == null)
                     throw new KeyNotFoundException();
 
-                await notificationsService.AddNotificationAsync(notificationDto);
-                logger.LogInformation($"Notification created");
+                await notificationsManager.CreateNotificationWithStatusAsync(notificationDto);
+                logger.LogInformation($"Notification created and sent to the RabbitMQ queue.");
 
                 return Ok();
             }
             catch (KeyNotFoundException ex)
             {
-                logger.LogError(ex, 
+                logger.LogError(ex,
                     $"Recipient ({notificationDto.RecipientUserId}) or Sender ({notificationDto.SenderUserId}) is not found");
                 return StatusCode(StatusCodes.Status404NotFound,
                     "Получателя не существует в системе.");
@@ -77,6 +80,43 @@ namespace NotifierNotificationService.NotificationService.Controllers
                     "Возникла непредвиденная ошибка при добавлении уведомления. Обратитесь к администратору или попробуйте позже.");
             }
         }
+
+        // Basic CRUD
+        //[HttpPost]
+        //public async Task<ActionResult> AddNotificationAsync(NotificationDto notificationDto)
+        //{
+        //    try
+        //    {
+        //        if (notificationDto is null) throw new ArgumentNullException(nameof(notificationDto));
+        //        if (await usersService.GetUserByIdAsync(notificationDto.RecipientUserId) == null
+        //            || await usersService.GetUserByIdAsync(notificationDto.SenderUserId) == null)
+        //            throw new KeyNotFoundException();
+
+        //        await notificationsService.AddNotificationAsync(notificationDto);
+        //        logger.LogInformation($"Notification created");
+
+        //        return Ok();
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        logger.LogError(ex,
+        //            $"Recipient ({notificationDto.RecipientUserId}) or Sender ({notificationDto.SenderUserId}) is not found");
+        //        return StatusCode(StatusCodes.Status404NotFound,
+        //            "Получателя не существует в системе.");
+        //    }
+        //    catch (ArgumentNullException ex)
+        //    {
+        //        logger.LogError(ex, "Required data to add a notification is not received.");
+        //        return StatusCode(StatusCodes.Status400BadRequest,
+        //            "Необходимые данные для добавления уведомления не получены. Обратитесь к администратору или попробуйте позже.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        logger.LogError(ex, "An unexpected error occurred while adding the notification.");
+        //        return StatusCode(StatusCodes.Status500InternalServerError,
+        //            "Возникла непредвиденная ошибка при добавлении уведомления. Обратитесь к администратору или попробуйте позже.");
+        //    }
+        //}
 
         [HttpGet("{notificationId}")]
         public async Task<ActionResult<NotificationDto>> GetNotificationById(Guid notificationId)

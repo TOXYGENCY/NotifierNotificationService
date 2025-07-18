@@ -1,5 +1,5 @@
-﻿using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+﻿using NotifierNotificationService.NotificationService.API.Dto;
+using NotifierNotificationService.NotificationService.Domain.Entities;
 
 namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 {
@@ -10,5 +10,9 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Serv
         //Task AddStatusAsync(StatusDto newStatusDto);
         Task AddStatusAsync(string statusName, string statusEngName);
         Task<StatusDto?> GetStatusByIdAsync(short statusId);
+        Task AssignStatusToNotificationAsync(short statusId, Notification notification);
+        Task AssignStatusCreatedAsync(Notification notification);
+        Task AssignStatusSentAsync(Notification notification);
+        Task AssignStatusErrorAsync(Notification notification);
     }
 }

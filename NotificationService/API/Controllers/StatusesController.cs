@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
-namespace NotifierNotificationService.NotificationService.Controllers
+namespace NotifierNotificationService.NotificationService.API.Controllers
 
 {
     [Route("api/v1/statuses")]

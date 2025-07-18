@@ -1,7 +1,4 @@
-﻿using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
-using System.Runtime.InteropServices;
-
-namespace NotifierNotificationService.NotificationService.Domain.Interfaces
+﻿namespace NotifierNotificationService.NotificationService.Domain.Interfaces
 {
     public interface IDtoConverter<Full, Dto, IdType>
     {

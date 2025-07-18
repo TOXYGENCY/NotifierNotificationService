@@ -1,10 +1,10 @@
-﻿using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+﻿using NotifierNotificationService.NotificationService.API.Dto;
+using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using System.Text.Json;
 
-namespace NotifierNotificationService.NotificationService.Services
+namespace NotifierNotificationService.NotificationService.Application.Services
 {
     public class StatusesService : IStatusesService
     {
@@ -129,9 +129,34 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <returns></returns>
         private DEST? JsonSerializationConvert<SRC, DEST>(SRC? src)
         {
-            if (src == null) return default(DEST);
+            if (src == null) return default;
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
 
+        public async Task AssignStatusToNotificationAsync(short statusId, Notification notification)
+        {
+            await statusesRepository.AssignNotificationStatusAsync(notification.Id, statusId);
+        }
+
+        public async Task AssignStatusCreatedAsync(Notification notification)
+        {
+            var status = await statusesRepository.GetByEngNameAsync("Created");
+            ArgumentNullException.ThrowIfNull(status);
+            await AssignStatusToNotificationAsync(status.Id, notification);
+        }
+
+        public async Task AssignStatusSentAsync(Notification notification)
+        {
+            var status = await statusesRepository.GetByEngNameAsync("Sent");
+            ArgumentNullException.ThrowIfNull(status);
+            await AssignStatusToNotificationAsync(status.Id, notification);
+        }
+
+        public async Task AssignStatusErrorAsync(Notification notification)
+        {
+            var status = await statusesRepository.GetByEngNameAsync("Error");
+            ArgumentNullException.ThrowIfNull(status);
+            await AssignStatusToNotificationAsync(status.Id, notification);
+        }
     }
 }

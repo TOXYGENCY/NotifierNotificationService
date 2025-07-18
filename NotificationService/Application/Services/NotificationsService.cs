@@ -1,35 +1,33 @@
-﻿using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+﻿using NotifierNotificationService.NotificationService.API.Dto;
+using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Infrastructure;
 using System.Text.Json;
 
-namespace NotifierNotificationService.NotificationService.Services
+namespace NotifierNotificationService.NotificationService.Application.Services
 {
     public class NotificationsService : INotificationsService
     {
         private readonly INotificationsRepository notificationsRepository;
-        private readonly IRabbitPublisher rabbitmq;
 
-        public NotificationsService(INotificationsRepository notificationsRepository, IRabbitPublisher rabbitmq)
+        public NotificationsService(INotificationsRepository notificationsRepository)
         {
             this.notificationsRepository = notificationsRepository;
-            this.rabbitmq = rabbitmq;
         }
-        public async Task AddNotificationAsync(NotificationDto newNotificationDto)
+        public async Task<Notification> AddNotificationAsync(NotificationDto newNotificationDto)
         {
             if (newNotificationDto is null) throw new ArgumentNullException(nameof(newNotificationDto));
 
+            // TODO: эта проверка здесь корректна?
             if (newNotificationDto.CreatedAt <= DateTime.MinValue)
                 throw new ArgumentException($"Неверное время DateTime: {newNotificationDto.CreatedAt}");
 
             var newNotification = FromDto(newNotificationDto);
 
-            // TODO: добаавление в брокер 
-            await rabbitmq.PublishAsync<string>("", "123");
             await notificationsRepository.AddAsync(newNotification);
+            return newNotification;
         }
 
         public async Task UpdateNotificationAsync(Guid notificationId, NotificationDto updatedNotificationDto)
@@ -48,7 +46,6 @@ namespace NotifierNotificationService.NotificationService.Services
         {
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
             if (notification is null) return null;
-            await rabbitmq.PublishAsync<Notification>(notification, "notifications");
             return ToDto(notification);
         }
 
@@ -107,7 +104,7 @@ namespace NotifierNotificationService.NotificationService.Services
                 RecipientUserId = notificationDto.RecipientUserId,
                 SenderUserId = notificationDto.SenderUserId,
                 Message = notificationDto.Message,
-                CreatedAt = notificationDto.CreatedAt ?? default(DateTime), // либо передан, либо стандартное значение
+                CreatedAt = notificationDto.CreatedAt ?? default, // либо передан, либо стандартное значение
                 NotificationStatusLogs = new List<NotificationStatusLog>(),
                 RecipientUser = null!, // Будет заполнено при загрузке
                 SenderUser = null! // Будет заполнено при загрузке
@@ -161,7 +158,7 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <returns></returns>
         private DEST? JsonSerializationConvert<SRC, DEST>(SRC? src)
         {
-            if (src == null) return default(DEST);
+            if (src == null) return default;
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
     }
