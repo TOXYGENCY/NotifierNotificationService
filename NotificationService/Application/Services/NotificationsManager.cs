@@ -27,8 +27,17 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             if (newNotification != null)
             {
                 var newNotificationDto = notificationsService.ToDto(newNotification);
-                await rabbitmq.PublishAsync(newNotificationDto);
-                await statusesService.AssignStatusCreatedAsync(newNotification);
+                await statusesService.AssignStatusCreatedAsync(newNotification.Id);
+                try
+                {
+                    await rabbitmq.PublishAsync(newNotificationDto);
+                    await statusesService.AssignStatusPendingAsync(newNotification.Id);
+                }
+                catch (Exception)
+                {
+                    await statusesService.AssignStatusErrorAsync(newNotification.Id);
+                    throw;
+                }
 
                 // TODO: позже убрать
                 Console.WriteLine($"Sent message into RabbitMQ with: \n {JsonSerializer.Serialize(newNotification)}");
@@ -40,9 +49,46 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             }
         }
 
+        public async Task UpdateNotificationAsync(Guid notificationId, NotificationDto updatedNotification)
+        {
+            ArgumentNullException.ThrowIfNull(updatedNotification);
+            if (notificationId == Guid.Empty) throw new ArgumentException(nameof(notificationId));
+            var notification = await notificationsService.GetNotificationByIdAsync(notificationId);
+            if (notification == null) throw new KeyNotFoundException(nameof(notification));
+
+            try
+            {
+                await notificationsService.UpdateNotificationAsync(notificationId, updatedNotification);
+            }
+            catch (Exception)
+            {
+                await statusesService.AssignStatusUpdateErrorAsync(notificationId);
+                throw;
+            }
+        }
+
         public async Task UpdateNotificationStatusAsync(Guid notificationId, short newStatusId)
         {
-            throw new NotImplementedException();
+            if (notificationId == Guid.Empty) throw new ArgumentException(nameof(notificationId));
+            if (newStatusId < 0) throw new ArgumentOutOfRangeException(nameof(newStatusId));
+
+            var notification = await notificationsService.GetNotificationByIdAsync(notificationId);
+            if (notification != null)
+            {
+                try
+                {
+                    await statusesService.AssignStatusToNotificationAsync(notificationId, newStatusId);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            else
+            {
+                throw new ArgumentNullException
+                    ($"Notification ({nameof(notification)}) is null.");
+            }
         }
     }
 }

@@ -7,12 +7,14 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Serv
     {
         Task<IEnumerable<StatusDto>> GetAllStatusesAsync();
         Task UpdateStatusAsync(StatusDto updatedStatusDto);
-        //Task AddStatusAsync(StatusDto newStatusDto);
         Task AddStatusAsync(string statusName, string statusEngName);
         Task<StatusDto?> GetStatusByIdAsync(short statusId);
-        Task AssignStatusToNotificationAsync(short statusId, Notification notification);
-        Task AssignStatusCreatedAsync(Notification notification);
-        Task AssignStatusSentAsync(Notification notification);
-        Task AssignStatusErrorAsync(Notification notification);
+        Task AssignStatusToNotificationAsync(Guid notificationId, short statusId);
+        Task AssignStatusCreatedAsync(Guid notificationId);
+        Task AssignStatusSentAsync(Guid notificationId);
+        Task AssignStatusPendingAsync(Guid notificationId);
+        Task AssignStatusErrorAsync(Guid notificationId);
+        Task AssignStatusCreationErrorAsync(Guid notificationId);
+        Task AssignStatusUpdateErrorAsync(Guid notificationId);
     }
 }

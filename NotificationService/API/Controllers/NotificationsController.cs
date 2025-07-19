@@ -24,9 +24,9 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
         {
             this.notificationsRepository = notificationsRepository;
             this.notificationsService = notificationsService;
+            this.notificationsManager = notificationsManager;
             this.usersService = usersService;
             this.logger = logger;
-            this.notificationsManager = notificationsManager;
         }
 
         [HttpGet]
@@ -66,12 +66,6 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
                     $"Recipient ({notificationDto.RecipientUserId}) or Sender ({notificationDto.SenderUserId}) is not found");
                 return StatusCode(StatusCodes.Status404NotFound,
                     "Получателя не существует в системе.");
-            }
-            catch (ArgumentNullException ex)
-            {
-                logger.LogError(ex, "Required data to add a notification is not received.");
-                return StatusCode(StatusCodes.Status400BadRequest,
-                    "Необходимые данные для добавления уведомления не получены. Обратитесь к администратору или попробуйте позже.");
             }
             catch (Exception ex)
             {
@@ -123,7 +117,7 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
         {
             try
             {
-                var notification = await notificationsService.GetNotificationByIdAsync(notificationId);
+                var notification = await notificationsService.GetNotificationDtoByIdAsync(notificationId);
                 if (notification == null) return StatusCode(StatusCodes.Status404NotFound);
 
                 return Ok(notification);
@@ -141,7 +135,10 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
         {
             try
             {
-                await notificationsService.UpdateNotificationAsync(notificationId, updatedNotification);
+                if (notificationId == Guid.Empty) throw new ArgumentException(nameof(notificationId));
+                ArgumentNullException.ThrowIfNull(updatedNotification);
+
+                await notificationsManager.UpdateNotificationAsync(notificationId, updatedNotification);
                 logger.LogInformation($"Notification {notificationId} updated");
 
                 return Ok();

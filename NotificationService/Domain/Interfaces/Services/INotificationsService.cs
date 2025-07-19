@@ -7,7 +7,8 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Serv
     {
         Task<Notification> AddNotificationAsync(NotificationDto newNotificationDto);
         Task<IEnumerable<NotificationDto>> GetAllNotificationsAsync();
-        Task<NotificationDto?> GetNotificationByIdAsync(Guid notificationId);
+        Task<NotificationDto?> GetNotificationDtoByIdAsync(Guid notificationId);
+        Task<Notification?> GetNotificationByIdAsync(Guid notificationId);
         Task UpdateNotificationAsync(Guid id, NotificationDto updatedNotification);
     }
 }

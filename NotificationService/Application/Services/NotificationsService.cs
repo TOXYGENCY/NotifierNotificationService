@@ -1,9 +1,7 @@
 ﻿using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
-using NotifierNotificationService.NotificationService.Infrastructure;
 using System.Text.Json;
 
 namespace NotifierNotificationService.NotificationService.Application.Services
@@ -42,11 +40,15 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             await notificationsRepository.UpdateAsync(updatedNotification);
         }
 
-        public async Task<NotificationDto?> GetNotificationByIdAsync(Guid notificationId)
+        public async Task<NotificationDto?> GetNotificationDtoByIdAsync(Guid notificationId)
         {
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
             if (notification is null) return null;
             return ToDto(notification);
+        }
+        public async Task<Notification?> GetNotificationByIdAsync(Guid notificationId)
+        {
+            return await notificationsRepository.GetByIdAsync(notificationId);
         }
 
         public async Task<IEnumerable<NotificationDto>> GetAllNotificationsAsync()
@@ -161,5 +163,6 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             if (src == null) return default;
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
+
     }
 }

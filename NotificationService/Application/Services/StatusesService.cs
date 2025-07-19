@@ -48,7 +48,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         {
             if (updatedStatusDto is null) throw new ArgumentNullException(nameof(updatedStatusDto));
             if (updatedStatusDto.Id is null) throw new ArgumentNullException(nameof(updatedStatusDto.Id));
-            if (updatedStatusDto.Id < 0) throw new ArgumentException(nameof(updatedStatusDto.Id));
+            if (updatedStatusDto.Id < 0) throw new ArgumentOutOfRangeException(nameof(updatedStatusDto.Id));
 
             var currentStatus = await FromDtoToEntityAsync(updatedStatusDto.Id.Value, updatedStatusDto);
             if (currentStatus is null) throw new KeyNotFoundException("Cannot update object that does not exist.");
@@ -133,30 +133,57 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
 
-        public async Task AssignStatusToNotificationAsync(short statusId, Notification notification)
+        public async Task AssignStatusToNotificationAsync(Guid notificationId, short statusId)
         {
-            await statusesRepository.AssignNotificationStatusAsync(notification.Id, statusId);
+            if (statusId < 0) throw new ArgumentOutOfRangeException(nameof(statusId));
+            if (notificationId == Guid.Empty) throw new ArgumentException(nameof(notificationId));
+
+            var status = await statusesRepository.GetByIdAsync(statusId);
+            if (status is null) throw new KeyNotFoundException();
+
+            await statusesRepository.AssignNotificationStatusAsync(notificationId, statusId);
         }
 
-        public async Task AssignStatusCreatedAsync(Notification notification)
+        public async Task AssignStatusCreatedAsync(Guid notificationId)
         {
             var status = await statusesRepository.GetByEngNameAsync("Created");
             ArgumentNullException.ThrowIfNull(status);
-            await AssignStatusToNotificationAsync(status.Id, notification);
+            await AssignStatusToNotificationAsync(notificationId, status.Id);
         }
 
-        public async Task AssignStatusSentAsync(Notification notification)
+        public async Task AssignStatusPendingAsync(Guid notificationId)
+        {
+            var status = await statusesRepository.GetByEngNameAsync("Pending send");
+            ArgumentNullException.ThrowIfNull(status);
+            await AssignStatusToNotificationAsync(notificationId, status.Id);
+        }
+
+        public async Task AssignStatusSentAsync(Guid notificationId)
         {
             var status = await statusesRepository.GetByEngNameAsync("Sent");
             ArgumentNullException.ThrowIfNull(status);
-            await AssignStatusToNotificationAsync(status.Id, notification);
+            await AssignStatusToNotificationAsync(notificationId, status.Id);
         }
 
-        public async Task AssignStatusErrorAsync(Notification notification)
+        public async Task AssignStatusErrorAsync(Guid notificationId)
         {
             var status = await statusesRepository.GetByEngNameAsync("Error");
             ArgumentNullException.ThrowIfNull(status);
-            await AssignStatusToNotificationAsync(status.Id, notification);
+            await AssignStatusToNotificationAsync(notificationId, status.Id);
+        }
+
+        public async Task AssignStatusCreationErrorAsync(Guid notificationId)
+        {
+            var status = await statusesRepository.GetByEngNameAsync("Creation error");
+            ArgumentNullException.ThrowIfNull(status);
+            await AssignStatusToNotificationAsync(notificationId, status.Id);
+        }
+
+        public async Task AssignStatusUpdateErrorAsync(Guid notificationId)
+        {
+            var status = await statusesRepository.GetByEngNameAsync("Update error");
+            ArgumentNullException.ThrowIfNull(status);
+            await AssignStatusToNotificationAsync(notificationId, status.Id);
         }
     }
 }
