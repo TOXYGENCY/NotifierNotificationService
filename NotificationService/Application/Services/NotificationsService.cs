@@ -1,11 +1,10 @@
-﻿using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+﻿using NotifierNotificationService.NotificationService.API.Dto;
+using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
-using NotifierNotificationService.NotificationService.Infrastructure;
 using System.Text.Json;
 
-namespace NotifierNotificationService.NotificationService.Services
+namespace NotifierNotificationService.NotificationService.Application.Services
 {
     public class NotificationsService : INotificationsService
     {
@@ -15,16 +14,18 @@ namespace NotifierNotificationService.NotificationService.Services
         {
             this.notificationsRepository = notificationsRepository;
         }
-        public async Task AddNotificationAsync(NotificationDto newNotificationDto)
+        public async Task<Notification> AddNotificationAsync(NotificationDto newNotificationDto)
         {
             if (newNotificationDto is null) throw new ArgumentNullException(nameof(newNotificationDto));
 
+            // TODO: эта проверка здесь корректна?
             if (newNotificationDto.CreatedAt <= DateTime.MinValue)
                 throw new ArgumentException($"Неверное время DateTime: {newNotificationDto.CreatedAt}");
 
             var newNotification = FromDto(newNotificationDto);
 
             await notificationsRepository.AddAsync(newNotification);
+            return newNotification;
         }
 
         public async Task UpdateNotificationAsync(Guid notificationId, NotificationDto updatedNotificationDto)
@@ -39,11 +40,15 @@ namespace NotifierNotificationService.NotificationService.Services
             await notificationsRepository.UpdateAsync(updatedNotification);
         }
 
-        public async Task<NotificationDto?> GetNotificationByIdAsync(Guid notificationId)
+        public async Task<NotificationDto?> GetNotificationDtoByIdAsync(Guid notificationId)
         {
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
             if (notification is null) return null;
             return ToDto(notification);
+        }
+        public async Task<Notification?> GetNotificationByIdAsync(Guid notificationId)
+        {
+            return await notificationsRepository.GetByIdAsync(notificationId);
         }
 
         public async Task<IEnumerable<NotificationDto>> GetAllNotificationsAsync()
@@ -101,7 +106,7 @@ namespace NotifierNotificationService.NotificationService.Services
                 RecipientUserId = notificationDto.RecipientUserId,
                 SenderUserId = notificationDto.SenderUserId,
                 Message = notificationDto.Message,
-                CreatedAt = notificationDto.CreatedAt ?? default(DateTime), // либо передан, либо стандартное значение
+                CreatedAt = notificationDto.CreatedAt ?? default, // либо передан, либо стандартное значение
                 NotificationStatusLogs = new List<NotificationStatusLog>(),
                 RecipientUser = null!, // Будет заполнено при загрузке
                 SenderUser = null! // Будет заполнено при загрузке
@@ -155,8 +160,9 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <returns></returns>
         private DEST? JsonSerializationConvert<SRC, DEST>(SRC? src)
         {
-            if (src == null) return default(DEST);
+            if (src == null) return default;
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
+
     }
 }

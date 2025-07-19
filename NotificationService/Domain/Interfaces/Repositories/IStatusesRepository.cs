@@ -5,5 +5,6 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Repo
     public interface IStatusesRepository : ICrud<Status, short>
     {
         Task<Status?> GetByEngNameAsync(string engName);
+        Task AssignNotificationStatusAsync(Guid notificationId, short statusId);
     }
 }

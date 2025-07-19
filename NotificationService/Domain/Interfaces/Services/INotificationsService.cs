@@ -1,13 +1,14 @@
-﻿using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
+﻿using NotifierNotificationService.NotificationService.API.Dto;
+using NotifierNotificationService.NotificationService.Domain.Entities;
 
 namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 {
     public interface INotificationsService : IDtoConverter<Notification, NotificationDto, Guid>
     {
-        Task AddNotificationAsync(NotificationDto newNotificationDto);
+        Task<Notification> AddNotificationAsync(NotificationDto newNotificationDto);
         Task<IEnumerable<NotificationDto>> GetAllNotificationsAsync();
-        Task<NotificationDto?> GetNotificationByIdAsync(Guid notificationId);
+        Task<NotificationDto?> GetNotificationDtoByIdAsync(Guid notificationId);
+        Task<Notification?> GetNotificationByIdAsync(Guid notificationId);
         Task UpdateNotificationAsync(Guid id, NotificationDto updatedNotification);
     }
 }

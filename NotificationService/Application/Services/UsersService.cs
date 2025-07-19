@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using System.Text.Json;
 
-namespace NotifierNotificationService.NotificationService.Services
+namespace NotifierNotificationService.NotificationService.Application.Services
 {
     public class UsersService : IUsersService
     {
@@ -71,7 +71,7 @@ namespace NotifierNotificationService.NotificationService.Services
             // Если dto не передан, то с ним работать не можем - возвращаем что есть
             if (userDto is null) return user;
 
-            if (!String.IsNullOrEmpty(userDto.Login))
+            if (!string.IsNullOrEmpty(userDto.Login))
                 user ??= await usersRepository.GetByLoginAsync(userDto.Login);
 
             // Если dto есть и нет объекта в БД - конвертируем
@@ -128,7 +128,7 @@ namespace NotifierNotificationService.NotificationService.Services
         /// <returns></returns>
         private DEST? JsonSerializationConvert<SRC, DEST>(SRC? src)
         {
-            if (src == null) return default(DEST);
+            if (src == null) return default;
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
 

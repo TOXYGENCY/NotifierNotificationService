@@ -2,7 +2,7 @@
 using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 
-namespace NotifierNotificationService.NotificationService.Infrastructure
+namespace NotifierNotificationService.NotificationService.Infrastructure.Repositories
 {
     public class NotificationsRepository : INotificationsRepository
     {
@@ -10,7 +10,7 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
 
         public NotificationsRepository(NotifierContext сontext)
         {
-            this.context = сontext;
+            context = сontext;
         }
 
         public async Task AddAsync(Notification notification)

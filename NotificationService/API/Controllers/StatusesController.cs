@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Entities.Dto;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
-namespace NotifierNotificationService.NotificationService.Controllers
+namespace NotifierNotificationService.NotificationService.API.Controllers
 
 {
     [Route("api/v1/statuses")]
@@ -76,7 +76,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         {
             try
             {
-                if (statusId <= 0) throw new ArgumentException(nameof(statusId));
+                if (statusId < 0) throw new ArgumentException(nameof(statusId));
                 var status = await statusesService.GetStatusByIdAsync(statusId);
 
                 return Ok(status);
@@ -100,11 +100,11 @@ namespace NotifierNotificationService.NotificationService.Controllers
         {
             try
             {
-                if (statusId <= 0) throw new ArgumentException(nameof(statusId));
+                if (statusId < 0) throw new ArgumentException(nameof(statusId));
                 if (updatedStatusDto is null) throw new ArgumentNullException(nameof(updatedStatusDto));
                 if (statusId != updatedStatusDto.Id) return StatusCode(StatusCodes.Status400BadRequest, "Id не совпадают.");
 
-                await statusesService.UpdateServiceAsync(updatedStatusDto);
+                await statusesService.UpdateStatusAsync(updatedStatusDto);
                 logger.LogInformation($"Status {updatedStatusDto.EngName} ({updatedStatusDto.Id}) updated.");
 
                 return Ok();
@@ -141,7 +141,7 @@ namespace NotifierNotificationService.NotificationService.Controllers
         {
             try
             {
-                if (statusId <= 0) throw new ArgumentException(nameof(statusId));
+                if (statusId < 0) throw new ArgumentException(nameof(statusId));
                 await statusesRepository.DeleteAsync(statusId);
                 logger.LogInformation($"Status with id = {statusId} has been deleted");
 

@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using NotifierNotificationService.NotificationService.Application.Services;
+using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using NotifierNotificationService.NotificationService.Infrastructure;
-using NotifierNotificationService.NotificationService.Services;
+using NotifierNotificationService.NotificationService.Infrastructure.Repositories;
 using System.Text.Json.Serialization;
 
 
@@ -14,7 +16,6 @@ namespace NotifierNotificationService
         {
             var builder = WebApplication.CreateBuilder(args);
             var connectionString = builder.Configuration.GetConnectionString("Main");
-
             // Add services to the container.
 
             builder.Services.AddControllers()
@@ -27,17 +28,21 @@ namespace NotifierNotificationService
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddSingleton<IRabbitPublisher, RabbitPublisher>();
             builder.Services.AddTransient<IUsersRepository, UsersRepository>();
             builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<IStatusesRepository, StatusesRepository>();
             builder.Services.AddTransient<IStatusesService, StatusesService>();
             builder.Services.AddTransient<INotificationsRepository, NotificationsRepository>();
             builder.Services.AddTransient<INotificationsService, NotificationsService>();
+            builder.Services.AddTransient<INotificationsManager, NotificationsManager>();
             builder.Services.AddDbContext<NotifierContext>(options =>
                 options.UseNpgsql(connectionString)
                     .UseLazyLoadingProxies());
 
             var app = builder.Build();
+
+            app.Urls.Add("http://*:6121");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
