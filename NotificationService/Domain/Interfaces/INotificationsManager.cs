@@ -6,6 +6,7 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces
     {
         Task CreateNotificationWithStatusAsync(NotificationDto notificationDto);
         Task UpdateNotificationStatusAsync(Guid notificationId, short newStatusId);
+        Task UpdateNotificationStatusAsync(NotificationDto notificationDto, short newStatusId);
         Task UpdateNotificationAsync(Guid notificationId, NotificationDto updatedNotification);
     }
 }

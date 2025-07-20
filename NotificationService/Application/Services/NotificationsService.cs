@@ -64,7 +64,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         /// <param name="notificationDto">(опционально) объект, который стоит конвертировать в новый, 
         /// при отсустствии в контексте.</param>
         /// <returns> EF-объект из базы данных (EF-контекста). В случае, если он не найден, 
-        /// то конвертирует notificationDto (при наличии) в новый объект (вне контекста).
+        /// то конвертирует Notification (при наличии) в новый объект (вне контекста).
         /// Возвращает null, если объект не найден в контексте И если DTO-объект отсутствует.
         /// </returns>
         /// <exception cref="ArgumentException"></exception>
@@ -85,15 +85,24 @@ namespace NotifierNotificationService.NotificationService.Application.Services
 
             return notification;
         }
+        
+        public async Task<Notification?> FromDtoFindEntityAsync(NotificationDto? notificationDto)
+        {
+            if (notificationDto == null) return null;
+            var notification = await notificationsRepository.GetByUsersAndTimestamp
+                (notificationDto.SenderUserId, notificationDto.RecipientUserId, notificationDto.CreatedAt.Value);
+
+            return notification;
+        }
 
         /// <summary>
-        /// Конвертирует NotificationDto в Notification
+        /// Конвертирует Notification в Notification
         /// </summary>
         /// <param name="notificationDto"></param>
         /// <param name="baseForDto">Основа для установки значений из DTO.</param>
         /// <returns>
         /// Новый (вне EF) объект Notification на основе baseForDto (при наличии).
-        /// null если NotificationDto = null.
+        /// null если Notification = null.
         /// </returns>
         public Notification? FromDto(NotificationDto? notificationDto, Notification? baseForDto = null)
         {
@@ -129,7 +138,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         }
 
         /// <summary>
-        /// Конвертирует коллекцию Notification в коллекцию NotificationDto
+        /// Конвертирует коллекцию Notification в коллекцию Notification
         /// </summary>
         /// <param name="notifications">Исходная коллекция</param>
         /// <returns>

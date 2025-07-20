@@ -51,5 +51,12 @@ namespace NotifierNotificationService.NotificationService.Infrastructure.Reposit
             }
             else throw new KeyNotFoundException();
         }
+
+        public Task<Notification?> GetByUsersAndTimestamp(Guid senderId, Guid recipientId, DateTime createdAt)
+        {
+            return context.Notifications.FirstOrDefaultAsync(n => n.SenderUserId == senderId &&
+                                                                  n.RecipientUserId == recipientId && 
+                                                                  n.CreatedAt == createdAt);
+        }
     }
 }

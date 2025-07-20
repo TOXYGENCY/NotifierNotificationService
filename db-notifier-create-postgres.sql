@@ -39,5 +39,6 @@ INSERT INTO "statuses" (name, eng_name) VALUES ('Ожидает отправки
 INSERT INTO "statuses" (name, eng_name) VALUES ('Отправлено', 'Sent');
 INSERT INTO "statuses" (name, eng_name) VALUES ('Ошибка', 'Error');
 INSERT INTO "statuses" (name, eng_name) VALUES ('Ошибка создания', 'Creation error');
-INSERT INTO "statuses" (name, eng_name) VALUES ('Ошибка отправки', 'Update error');
-ALTER SEQUENCE statuses_id_seq RESTART WITH 7;
+INSERT INTO "statuses" (name, eng_name) VALUES ('Ошибка обновления', 'Update error');
+INSERT INTO "statuses" (name, eng_name) VALUES ('Ошибка отправки', 'Delivery error');
+ALTER SEQUENCE statuses_id_seq RESTART WITH 8;
