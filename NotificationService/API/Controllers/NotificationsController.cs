@@ -69,48 +69,11 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An unexpected error occurred while adding the notification.");
+                logger.LogError(ex, "An unexpected error occurred while adding the Notification.");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при добавлении уведомления. Обратитесь к администратору или попробуйте позже.");
             }
         }
-
-        // Basic CRUD
-        //[HttpPost]
-        //public async Task<ActionResult> AddNotificationAsync(NotificationDto notificationDto)
-        //{
-        //    try
-        //    {
-        //        if (notificationDto is null) throw new ArgumentNullException(nameof(notificationDto));
-        //        if (await usersService.GetUserByIdAsync(notificationDto.RecipientUserId) == null
-        //            || await usersService.GetUserByIdAsync(notificationDto.SenderUserId) == null)
-        //            throw new KeyNotFoundException();
-
-        //        await notificationsService.AddNotificationAsync(notificationDto);
-        //        logger.LogInformation($"Notification created");
-
-        //        return Ok();
-        //    }
-        //    catch (KeyNotFoundException ex)
-        //    {
-        //        logger.LogError(ex,
-        //            $"Recipient ({notificationDto.RecipientUserId}) or Sender ({notificationDto.SenderUserId}) is not found");
-        //        return StatusCode(StatusCodes.Status404NotFound,
-        //            "Получателя не существует в системе.");
-        //    }
-        //    catch (ArgumentNullException ex)
-        //    {
-        //        logger.LogError(ex, "Required data to add a notification is not received.");
-        //        return StatusCode(StatusCodes.Status400BadRequest,
-        //            "Необходимые данные для добавления уведомления не получены. Обратитесь к администратору или попробуйте позже.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        logger.LogError(ex, "An unexpected error occurred while adding the notification.");
-        //        return StatusCode(StatusCodes.Status500InternalServerError,
-        //            "Возникла непредвиденная ошибка при добавлении уведомления. Обратитесь к администратору или попробуйте позже.");
-        //    }
-        //}
 
         [HttpGet("{notificationId}")]
         public async Task<ActionResult<NotificationDto>> GetNotificationById(Guid notificationId)
@@ -124,7 +87,7 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An unexpected error occurred while searching for the notification");
+                logger.LogError(ex, "An unexpected error occurred while searching for the Notification");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при поиске уведомления. Обратитесь к администратору или попробуйте позже.");
             }
@@ -151,7 +114,7 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An unexpected error occurred while updating the notification");
+                logger.LogError(ex, "An unexpected error occurred while updating the Notification");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при обновлении уведомления. Обратитесь к администратору или попробуйте позже.");
             }
@@ -176,7 +139,7 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An unexpected error occurred while deleting the notification.");
+                logger.LogError(ex, "An unexpected error occurred while deleting the Notification.");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Возникла непредвиденная ошибка при удалении уведомления. Обратитесь к администратору или попробуйте позже.");
             }

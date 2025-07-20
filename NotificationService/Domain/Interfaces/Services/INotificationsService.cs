@@ -1,5 +1,6 @@
 ﻿using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
+using NotifierNotificationService.NotificationService.Infrastructure.Repositories;
 
 namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 {
@@ -10,5 +11,7 @@ namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Serv
         Task<NotificationDto?> GetNotificationDtoByIdAsync(Guid notificationId);
         Task<Notification?> GetNotificationByIdAsync(Guid notificationId);
         Task UpdateNotificationAsync(Guid id, NotificationDto updatedNotification);
+        Task<Notification?> FromDtoFindEntityAsync(NotificationDto? notificationDto);
+
     }
 }

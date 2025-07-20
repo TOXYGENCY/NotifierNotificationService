@@ -45,7 +45,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             else
             {
                 throw new ArgumentNullException
-                    ($"Created notification ({nameof(newNotification)}) is null. Cannot create status and send message.");
+                    ($"Created Notification ({nameof(newNotification)}) is null. Cannot create status and send message.");
             }
         }
 
@@ -89,6 +89,15 @@ namespace NotifierNotificationService.NotificationService.Application.Services
                 throw new ArgumentNullException
                     ($"Notification ({nameof(notification)}) is null.");
             }
+        }
+
+        public async Task UpdateNotificationStatusAsync(NotificationDto notificationDto, short newStatusId)
+        {
+            ArgumentNullException.ThrowIfNull(notificationDto);
+            if (newStatusId < 0) throw new ArgumentOutOfRangeException(nameof(newStatusId));
+
+            var notification = await notificationsService.FromDtoFindEntityAsync(notificationDto);
+            await UpdateNotificationStatusAsync(notification.Id, newStatusId);
         }
     }
 }
