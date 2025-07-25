@@ -36,6 +36,7 @@ namespace NotifierNotificationService.NotificationService.Infrastructure.Reposit
 
         public async Task UpdateAsync(Status updatedStatus)
         {
+            ArgumentNullException.ThrowIfNull(updatedStatus);
             var currentStatus = await context.Statuses.FirstOrDefaultAsync(s => s.Id == updatedStatus.Id);
             if (currentStatus == null) throw new KeyNotFoundException($"Статус {updatedStatus.Id} - {updatedStatus.Name} не найден");
 

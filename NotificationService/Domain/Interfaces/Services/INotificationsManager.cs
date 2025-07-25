@@ -1,6 +1,6 @@
 ﻿using NotifierNotificationService.NotificationService.API.Dto;
 
-namespace NotifierNotificationService.NotificationService.Domain.Interfaces
+namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 {
     public interface INotificationsManager
     {
