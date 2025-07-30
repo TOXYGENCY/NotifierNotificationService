@@ -37,12 +37,14 @@ namespace NotifierNotificationService
             builder.Services.AddScoped<INotificationsService, NotificationsService>();
             builder.Services.AddScoped<INotificationsManager, NotificationsManager>();
             builder.Services.AddScoped<IDeliveryStatusManager, DeliveryStatusManager>();
+            builder.Services.AddScoped<IStatusesRedisCache, StatusesRedisCache>();
+            builder.Services.AddScoped<StatusesRepository>();
             builder.Services.AddScoped<IStatusesRepository>(provider =>
             {
                 // Установка на IStatusesRepository обертку с кешем Redis, который использует 
                 // обычный EF-репозиторий (repo) через DI
                 var cache = provider.GetRequiredService<IStatusesRedisCache>();
-                var repo = provider.GetRequiredService<IStatusesRepository>();
+                var repo = provider.GetRequiredService<StatusesRepository>();
                 var logger = provider.GetRequiredService<ILogger<CachedStatusesRepository>>();
                 return new CachedStatusesRepository(cache, repo, logger);
             });
@@ -60,7 +62,8 @@ namespace NotifierNotificationService
             app.Urls.Add("http://*:6121");
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (Boolean.TryParse(builder.Configuration["UseSwagger"], 
+                out bool useSwagger) && useSwagger)
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
