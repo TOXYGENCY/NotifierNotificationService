@@ -1,5 +1,5 @@
 ﻿using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Interfaces;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using System.Text.Json;
 
 namespace NotifierNotificationService.NotificationService.Application.Services

@@ -1,6 +1,6 @@
 ﻿using NotifierNotificationService.NotificationService.Application.Services;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Domain.Interfaces;
+using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
