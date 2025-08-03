@@ -1,7 +1,6 @@
 ﻿using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
-using StackExchange.Redis;
 using System.Text.Json;
 
 namespace NotifierNotificationService.NotificationService.Application.Services
@@ -11,15 +10,13 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         private readonly INotificationsService notificationsService;
         private readonly IStatusesService statusesService;
         private readonly IRabbitPublisher rabbitmq;
-        private readonly IDatabase redis;
 
         public NotificationsManager(INotificationsService notificationsService,
-            IStatusesService statusesService, IRabbitPublisher rabbitmq, IDatabase redis)
+            IStatusesService statusesService, IRabbitPublisher rabbitmq)
         {
             this.notificationsService = notificationsService;
             this.statusesService = statusesService;
             this.rabbitmq = rabbitmq;
-            this.redis = redis;
         }
 
         public async Task CreateNotificationWithStatusAsync(NotificationDto notificationDto)
@@ -31,29 +28,14 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             {
                 var newNotificationDto = notificationsService.ToDto(newNotification);
                 await statusesService.AssignStatusCreatedAsync(newNotification.Id);
-                await redis.StreamAddAsync("analytics", new NameValueEntry[]
-                    {
-                        new("notificationId", newNotification.Id.ToString()),
-                        new("status", "created")
-                    });
                 try
                 {
                     await statusesService.AssignStatusPendingAsync(newNotification.Id);
                     await rabbitmq.PublishAsync(newNotificationDto);
-                    await redis.StreamAddAsync("analytics", new NameValueEntry[]
-                    {
-                        new("notificationId", newNotification.Id.ToString()),
-                        new("status", "pending")
-                    });
                 }
                 catch (Exception)
                 {
                     await statusesService.AssignStatusErrorAsync(newNotification.Id);
-                    await redis.StreamAddAsync("analytics", new NameValueEntry[]
-                    {
-                        new("notificationId", newNotification.Id.ToString()),
-                        new("status", "error")
-                    });
                     throw;
                 }
 
@@ -93,16 +75,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             var notification = await notificationsService.GetNotificationByIdAsync(notificationId);
             if (notification != null)
             {
-                try
-                {
-                    await statusesService.AssignStatusToNotificationAsync(notificationId, newStatusId);
-                    await redis.StreamAddAsync("analytics", $"{notificationId}.status", $"status.id={newStatusId}");
-                }
-                catch (Exception)
-                {
-                    await redis.StreamAddAsync("analytics", $"{notificationId}.status", "error");
-                    throw;
-                }
+                await statusesService.AssignStatusToNotificationAsync(notificationId, newStatusId);
             }
             else
             {
