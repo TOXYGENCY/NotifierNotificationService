@@ -38,6 +38,7 @@ namespace NotifierNotificationService
             builder.Services.AddScoped<INotificationsManager, NotificationsManager>();
             builder.Services.AddScoped<IDeliveryStatusManager, DeliveryStatusManager>();
             builder.Services.AddScoped<IStatusesRedisCache, StatusesRedisCache>();
+            builder.Services.AddScoped<IAnalyticsManager, AnalyticsManagerRedis>();
             builder.Services.AddScoped<StatusesRepository>();
             builder.Services.AddScoped<IStatusesRepository>(provider =>
             {

@@ -1,5 +1,7 @@
-﻿using NotifierNotificationService.NotificationService.API.Dto;
+﻿using NotifierNotificationService.NotificationService.API.Controllers;
+using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
+using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using System.Text.Json;
@@ -9,10 +11,15 @@ namespace NotifierNotificationService.NotificationService.Application.Services
     public class StatusesService : IStatusesService
     {
         private readonly IStatusesRepository statusesRepository;
+        private readonly IAnalyticsManager analyticsManager;
+        private readonly ILogger<StatusesService> logger;
 
-        public StatusesService(IStatusesRepository statusesRepository)
+        public StatusesService(IStatusesRepository statusesRepository, 
+            IAnalyticsManager analyticsManager, ILogger<StatusesService> logger)
         {
             this.statusesRepository = statusesRepository;
+            this.analyticsManager = analyticsManager;
+            this.logger = logger;
         }
 
         public async Task AddStatusAsync(StatusDto newStatusDto)
@@ -140,6 +147,15 @@ namespace NotifierNotificationService.NotificationService.Application.Services
 
             var status = await statusesRepository.GetByIdAsync(statusId);
             if (status is null) throw new KeyNotFoundException();
+
+            try
+            {
+                await analyticsManager.SendNotificationStatusAsync(notificationId, statusId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Could not send notification status to analytics. Proceeding without sending...");
+            }
 
             await statusesRepository.AssignNotificationStatusAsync(notificationId, statusId);
         }
