@@ -17,18 +17,24 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         public StatusesService(IStatusesRepository statusesRepository, 
             IAnalyticsManager analyticsManager, ILogger<StatusesService> logger)
         {
+            logger.LogDebug($"StatusesService constructor start...");
             this.statusesRepository = statusesRepository;
             this.analyticsManager = analyticsManager;
             this.logger = logger;
+            logger.LogDebug($"StatusesService constructor finish.");
+        }
+
+        private async Task AddAsync(StatusDto dto)
+        {
+            await statusesRepository.AddAsync(FromDto(dto));
+            logger.LogInformation($"Added status ({dto.EngName}).");
         }
 
         public async Task AddStatusAsync(StatusDto newStatusDto)
         {
             if (newStatusDto is null) throw new ArgumentNullException(nameof(newStatusDto));
 
-            var newStatus = FromDto(newStatusDto);
-
-            await statusesRepository.AddAsync(newStatus);
+            await AddAsync(newStatusDto);
         }
 
         public async Task AddStatusAsync(string statusName, string statusEngName)
@@ -39,9 +45,10 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             if (string.IsNullOrEmpty(statusEngName))
                 throw new ArgumentException($"'{nameof(statusEngName)}' cannot be null or empty.", nameof(statusEngName));
 
-            var newStatus = new StatusDto { Name = statusName, EngName = statusEngName };
+            var newStatusDto = new StatusDto { Name = statusName, EngName = statusEngName };
 
-            await statusesRepository.AddAsync(FromDto(newStatus));
+            await AddAsync(newStatusDto);
+
         }
 
         public async Task<StatusDto?> GetStatusByIdAsync(short statusId)
@@ -65,6 +72,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             updatedStatus.EngName = updatedStatusDto.EngName.Trim();
 
             await statusesRepository.UpdateAsync(updatedStatus);
+            logger.LogInformation($"Updated status ({currentStatus.EngName} to {updatedStatusDto.EngName}).");
         }
 
         public async Task<IEnumerable<StatusDto>> GetAllStatusesAsync()
@@ -151,6 +159,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             try
             {
                 await analyticsManager.SendNotificationStatusAsync(notificationId, statusId);
+                logger.LogInformation($"Sent notification status to analytics ({notificationId} - {statusId}).");
             }
             catch (Exception ex)
             {
@@ -158,6 +167,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             }
 
             await statusesRepository.AssignNotificationStatusAsync(notificationId, statusId);
+            logger.LogInformation($"Assigned status ({statusId}) to notification ({notificationId}).");
         }
 
         public async Task AssignStatusCreatedAsync(Guid notificationId)

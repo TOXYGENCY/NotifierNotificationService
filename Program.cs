@@ -19,25 +19,28 @@ namespace NotifierNotificationService
     {
         public static void Main(string[] args)
         {
-            static LoggerConfiguration ConfigureLogger(LoggerConfiguration cfg, string outputTemplate, string filename)
+            static LoggerConfiguration ConfigureLogger(LoggerConfiguration cfg, 
+                string outputTemplate, string filename, 
+                LogEventLevel fileMinimumLvl = LogEventLevel.Warning, 
+                LogEventLevel consoleMinimumLvl = LogEventLevel.Information)
             {
                 cfg.MinimumLevel.Override("Microsoft", LogEventLevel.Fatal) // Только критические ошибки из Microsoft-сервисов
                     .Enrich.FromLogContext()
                     .WriteTo.Console(
                         outputTemplate: outputTemplate,
-                        restrictedToMinimumLevel: LogEventLevel.Information
+                        restrictedToMinimumLevel: consoleMinimumLvl
                     )
                     .WriteTo.File(
                         "logs/notification-startup-log.txt",
                         outputTemplate: outputTemplate,
                         rollingInterval: RollingInterval.Day,
-                        restrictedToMinimumLevel: LogEventLevel.Warning
+                        restrictedToMinimumLevel: fileMinimumLvl
                     );
                 return cfg;
             }
 
             var tempLoggerOutputTemplate = 
-                "[NOTIFICATION SVC STARTUP LOGGER] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+                "[NOTIFICATION.SVC STARTUP LOGGER] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
             var tempLogFilename = "logs/notification-startup-log.txt";
             // Временный логгер для этапа до создания билдера
             Log.Logger = ConfigureLogger(new LoggerConfiguration(), tempLoggerOutputTemplate, tempLogFilename)
@@ -62,7 +65,9 @@ namespace NotifierNotificationService
                 // Полноценная настройка Serilog логгера (из конфига)
                 builder.Host.UseSerilog((builderContext, serilogConfig) =>
                 {
+                    // Конфигурация логгера
                     serilogConfig
+                        // Перезаписываение конфигурации из appsettings (если есть)
                         .ReadFrom.Configuration(builderContext.Configuration)
                         // Ручная настройка Loki
                         .WriteTo.Loki(new LokiSinkConfigurations()
@@ -162,7 +167,7 @@ namespace NotifierNotificationService
                             ]
                         })
                         .CreateLogger();
-                    tempLogger.Fatal(ex, "[NOTIFICATION SVC TEMPORARY LOGGER FATAL] Application startup failed");
+                    tempLogger.Fatal(ex, "[NOTIFICATION.SVC TEMPORARY LOGGER FATAL] Application startup failed");
                 }
                 catch (Exception lokiEx)
                 {
