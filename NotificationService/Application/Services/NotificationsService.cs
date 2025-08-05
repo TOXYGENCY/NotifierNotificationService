@@ -9,18 +9,19 @@ namespace NotifierNotificationService.NotificationService.Application.Services
     public class NotificationsService : INotificationsService
     {
         private readonly INotificationsRepository notificationsRepository;
+        private readonly ILogger<NotificationsService> logger;
 
-        public NotificationsService(INotificationsRepository notificationsRepository)
+        public NotificationsService(INotificationsRepository notificationsRepository,
+            ILogger<NotificationsService> logger)
         {
+            logger.LogDebug($"NotificationsService constructor start...");
             this.notificationsRepository = notificationsRepository;
+            this.logger = logger;
+            logger.LogDebug($"NotificationsService constructor finish.");
         }
         public async Task<Notification> AddNotificationAsync(NotificationDto newNotificationDto)
         {
             if (newNotificationDto is null) throw new ArgumentNullException(nameof(newNotificationDto));
-
-            // TODO: эта проверка здесь корректна?
-            if (newNotificationDto.CreatedAt <= DateTime.MinValue)
-                throw new ArgumentException($"Неверное время DateTime: {newNotificationDto.CreatedAt}");
 
             var newNotification = FromDto(newNotificationDto);
 
@@ -31,10 +32,20 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         public async Task UpdateNotificationAsync(Guid notificationId, NotificationDto updatedNotificationDto)
         {
             if (updatedNotificationDto == null || notificationId.Equals(Guid.Empty))
-                throw new ArgumentNullException("Не все аргументы переданы.");
+            {
+                var mes = "Did not recieve enough arguments";
+                logger.LogError($"{mes}: {nameof(notificationId)}: {notificationId}, " +
+                    $"{nameof(updatedNotificationDto)}: {updatedNotificationDto}");
+                throw new ArgumentNullException(mes);
+            }
 
             var notification = await notificationsRepository.GetByIdAsync(notificationId);
-            if (notification == null) throw new InvalidOperationException($"Уведомление с Id = {notificationId} не найдено.");
+            if (notification == null)
+            {
+                var mes = $"NotificationId = {notificationId} could not be found.";
+                logger.LogError(mes);
+                throw new InvalidOperationException(mes);
+            }
 
             var updatedNotification = FromDto(updatedNotificationDto, notification);
             await notificationsRepository.UpdateAsync(updatedNotification);
@@ -85,7 +96,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
 
             return notification;
         }
-        
+
         public async Task<Notification?> FromDtoFindEntityAsync(NotificationDto? notificationDto)
         {
             if (notificationDto == null) return null;
@@ -128,7 +139,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
                 notification.RecipientUser = baseForDto.RecipientUser;
                 notification.NotificationStatusLogs = baseForDto.NotificationStatusLogs;
             }
-            
+
             return notification;
         }
 

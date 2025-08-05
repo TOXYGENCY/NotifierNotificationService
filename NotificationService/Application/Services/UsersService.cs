@@ -11,11 +11,15 @@ namespace NotifierNotificationService.NotificationService.Application.Services
     {
         private readonly IUsersRepository usersRepository;
         private readonly PasswordHasher<object> hasher; // object, а не User, потому что в этой реализации .HashPassword аргумент newUserDto не используется
+        private readonly ILogger<UsersService> logger;
 
-        public UsersService(IUsersRepository usersRepository)
+        public UsersService(IUsersRepository usersRepository, ILogger<UsersService> logger)
         {
+            logger.LogDebug($"UsersService constructor start...");
             this.usersRepository = usersRepository;
             hasher = new PasswordHasher<object>();
+            this.logger = logger;
+            logger.LogDebug($"UsersService constructor finish.");
         }
 
         public bool VerifyHashedPassword(string hashedPassword, string providedPassword)
@@ -43,16 +47,27 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             newUser.PasswordHash = HashPassword(password);
 
             await usersRepository.AddAsync(newUser);
+            logger.LogInformation($"Added user ({newUser.Login}).");
         }
 
         public async Task UpdateUserAsync(Guid userId, UserDto updatedUserDto, string? newPassword = null)
         {
             if (updatedUserDto is null || userId == Guid.Empty)
+            {
+                var mes = "Did not recieve enough arguments";
+                logger.LogError($"{mes}: {nameof(updatedUserDto)}: {updatedUserDto}, " +
+                    $"{nameof(userId)}: {userId}");
                 throw new ArgumentNullException(nameof(updatedUserDto));
+            }
 
             var user = await usersRepository.GetByIdAsync(userId);
             if (user == null)
-                throw new InvalidOperationException($"Пользователь с Id = {userId} не найден.");
+            {
+                var mes = $"UserId = {userId} could not be found.";
+                logger.LogError(mes);
+                throw new InvalidOperationException(mes);
+            }
+            var oldLogin = user.Login;
 
             if (!string.IsNullOrEmpty(updatedUserDto.Login))
                 user.Login = updatedUserDto.Login;
@@ -61,6 +76,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
                 user.PasswordHash = HashPassword(newPassword);
 
             await usersRepository.UpdateAsync(user);
+            logger.LogInformation($"Updated user ({oldLogin} to {updatedUserDto.Login}).");
         }
 
         public async Task<User?> FromDtoToEntityAsync(Guid userId, UserDto? userDto)
