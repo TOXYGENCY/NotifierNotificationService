@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using NotifierDeliveryWorker.DeliveryWorker.Infrastructure;
 using NotifierNotificationService.NotificationService.Application.Services;
@@ -10,6 +11,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Loki;
 using StackExchange.Redis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 
@@ -24,7 +26,7 @@ namespace NotifierNotificationService
                 LogEventLevel fileMinimumLvl = LogEventLevel.Warning, 
                 LogEventLevel consoleMinimumLvl = LogEventLevel.Information)
             {
-                cfg.MinimumLevel.Override("Microsoft", LogEventLevel.Fatal) // Только критические ошибки из Microsoft-сервисов
+                cfg.MinimumLevel.Override("Microsoft", LogEventLevel.Error) // Только ошибки из Microsoft-сервисов
                     .Enrich.FromLogContext()
                     .WriteTo.Console(
                         outputTemplate: outputTemplate,
@@ -128,9 +130,30 @@ namespace NotifierNotificationService
 
                 var app = builder.Build();
 
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async ctx =>
+                    {
+                        var errorFeature = ctx.Features.Get<IExceptionHandlerFeature>();
+                        var exception = errorFeature.Error;
+                        var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(exception, "Global exception handler caught exception");
+
+                        ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                        ctx.Response.ContentType = "application/json";
+
+                        await ctx.Response.WriteAsync(JsonSerializer.Serialize(new
+                        {
+                            error = "Internal Server Error",
+                            message = exception.Message
+                        }));
+                    });
+                });
+
                 var url = "http://*:6121";
                 app.Urls.Add(url);
                 Log.Information($"Added {url} to list of app's URLs.");
+
 
                 // Configure the HTTP request pipeline.
                 if (Boolean.TryParse(builder.Configuration["UseSwagger"],
