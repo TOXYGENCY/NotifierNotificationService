@@ -15,10 +15,10 @@ namespace NotifierNotificationService.NotificationService.Application.Services
 
         public UsersService(IUsersRepository usersRepository, ILogger<UsersService> logger)
         {
+            this.logger = logger;
             logger.LogDebug($"UsersService constructor start...");
             this.usersRepository = usersRepository;
             hasher = new PasswordHasher<object>();
-            this.logger = logger;
             logger.LogDebug($"UsersService constructor finish.");
         }
 

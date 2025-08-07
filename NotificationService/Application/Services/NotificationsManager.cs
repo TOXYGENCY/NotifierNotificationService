@@ -15,11 +15,11 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         public NotificationsManager(INotificationsService notificationsService,
             IStatusesService statusesService, IRabbitPublisher rabbitmq, ILogger<NotificationsManager> logger)
         {
+            this.logger = logger;
             logger.LogDebug($"NotificationsManager constructor start...");
             this.notificationsService = notificationsService;
             this.statusesService = statusesService;
             this.rabbitmq = rabbitmq;
-            this.logger = logger;
             logger.LogDebug($"NotificationsManager constructor finish.");
         }
 

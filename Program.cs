@@ -8,11 +8,13 @@ using NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 using NotifierNotificationService.NotificationService.Infrastructure;
 using NotifierNotificationService.NotificationService.Infrastructure.Repositories;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.Loki;
 using StackExchange.Redis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
 
 namespace NotifierNotificationService
@@ -20,7 +22,7 @@ namespace NotifierNotificationService
     public class Program
     {
         public static void Main(string[] args)
-        {
+        { 
             static LoggerConfiguration ConfigureLogger(LoggerConfiguration cfg, 
                 string outputTemplate, string filename, 
                 LogEventLevel fileMinimumLvl = LogEventLevel.Warning, 
@@ -33,12 +35,29 @@ namespace NotifierNotificationService
                         restrictedToMinimumLevel: consoleMinimumLvl
                     )
                     .WriteTo.File(
-                        "logs/notification-startup-log.txt",
+                        filename,
                         outputTemplate: outputTemplate,
                         rollingInterval: RollingInterval.Day,
                         restrictedToMinimumLevel: fileMinimumLvl
                     );
                 return cfg;
+            }
+
+            // Вывод установленных значений уровней логгирования Serilog
+            static void LogCurrentLoggingLevels(IConfiguration serilogConfig)
+            {
+                var sect = serilogConfig.GetSection("WriteTo");
+                var globalLvl = serilogConfig.GetValue<string>("MinimumLevel:Default");
+                Log.Logger.Information($"Logging level globally is set to {globalLvl}");
+
+                foreach (var sink in sect.GetChildren())
+                {
+                    var name = sink["Name"];
+                    var lvl = sink.GetValue<string>("Args:restrictedToMinimumLevel");
+                    if (string.IsNullOrEmpty(lvl)) lvl = $"{globalLvl} (inherited)";
+
+                    Log.Logger.Information($"Logging level for sink {name} is set to {lvl}");
+                }
             }
 
             var tempLoggerOutputTemplate = 
@@ -65,12 +84,12 @@ namespace NotifierNotificationService
                 Log.Information("Configuration loaded.");
 
                 // Полноценная настройка Serilog логгера (из конфига)
-                builder.Host.UseSerilog((builderContext, serilogConfig) =>
+                builder.Host.UseSerilog((builder, serilogConfig) =>
                 {
                     // Конфигурация логгера
                     serilogConfig
                         // Перезаписываение конфигурации из appsettings (если есть)
-                        .ReadFrom.Configuration(builderContext.Configuration)
+                        .ReadFrom.Configuration(builder.Configuration)
                         // Ручная настройка Loki
                         .WriteTo.Loki(new LokiSinkConfigurations()
                         {
@@ -129,6 +148,9 @@ namespace NotifierNotificationService
                         .UseLazyLoadingProxies());
 
                 var app = builder.Build();
+
+                // Выводим текущие уровни логгирования
+                LogCurrentLoggingLevels(app.Configuration.GetSection("Serilog"));
 
                 app.UseExceptionHandler(errorApp =>
                 {

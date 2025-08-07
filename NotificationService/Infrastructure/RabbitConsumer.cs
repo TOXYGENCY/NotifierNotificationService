@@ -1,5 +1,4 @@
-﻿using NotifierNotificationService.NotificationService.Application.Services;
-using NotifierNotificationService.NotificationService.Domain.Entities;
+﻿using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -20,15 +19,26 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
         private IChannel channel;
         private IConnection connection;
         private AsyncEventingBasicConsumer consumer;
+        private readonly ILogger<RabbitConsumer> logger;
 
-        public RabbitConsumer(IConfiguration configuration, IServiceScopeFactory scopeFactory)
+        public RabbitConsumer(IConfiguration configuration, IServiceScopeFactory scopeFactory, 
+            ILogger<RabbitConsumer> logger)
         {
+            this.logger = logger;
+            logger.LogDebug($"RabbitConsumer constructor start...");
             this.config = configuration;
+
             hostname = config["RabbitMq:HostName"] ?? "rabbitmq";
+            logger.LogDebug($"RabbitMQ HostName is \"{hostname}\"");
+
             username = config["RabbitMq:UserName"] ?? "admin";
             password = config["RabbitMq:Password"] ?? "admin";
+
             queue = config["RabbitMq:StatusUpdatesQueueName"] ?? "status_updates";
+            logger.LogDebug($"RabbitMQ consumer queue is \"{queue}\"");
+
             this.scopeFactory = scopeFactory;
+            logger.LogDebug($"RabbitConsumer constructor finish.");
         }
 
         private async Task Init()
@@ -43,6 +53,8 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
             connection = await connectionFactory.CreateConnectionAsync();
             channel = await connection.CreateChannelAsync();
             consumer = new AsyncEventingBasicConsumer(channel);
+
+            logger.LogDebug($"Initialized rabbit consumer.");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -54,7 +66,7 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
             await channel.QueueDeclareAsync(queue: queue, durable: false,
                 exclusive: false, autoDelete: false, arguments: null);
 
-            Console.WriteLine(" [*] Waiting for messages.");
+            logger.LogInformation($"Waiting for messages.");
 
             // Подписываемся на событие получения сообщения
             consumer.ReceivedAsync += async (model, eventArgs) =>
@@ -77,13 +89,13 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
             {
                 var body = eventArgs.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine($" [v] Received {message}");
+                logger.LogInformation($"Received {message}.");
 
                 
                 var statusUpdate = JsonSerializer.Deserialize<StatusUpdatePayload>(message);
                 if (statusUpdate == null)
                 {
-                    Console.WriteLine(" [x] ERROR: Deserialization returned null");
+                    logger.LogError($"Deserialization returned null.");
                     return;
                 }
 
@@ -91,11 +103,11 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
                 var deliveryStatusManager = scope.ServiceProvider.GetRequiredService<IDeliveryStatusManager>();
 
                 await deliveryStatusManager.UpdateDeliveryStatusAsync(statusUpdate);
-                Console.WriteLine(" [v] Update completed");
+                logger.LogInformation($"Update completed.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($" [x] CRITICAL ERROR: {ex}");
+                logger.LogError(ex, $"CRITICAL ERROR.");
             }
         }
     }

@@ -7,10 +7,15 @@ namespace NotifierNotificationService.NotificationService.Application.Services
     public class DeliveryStatusManager : IDeliveryStatusManager
     {
         private readonly INotificationsManager notificationsManager;
+        private readonly ILogger<DeliveryStatusManager> logger;
 
-        public DeliveryStatusManager(INotificationsManager notificationsManager)
+        public DeliveryStatusManager(INotificationsManager notificationsManager, 
+            ILogger<DeliveryStatusManager> logger)
         {
+            this.logger = logger;
+            logger.LogDebug($"DeliveryStatusManager constructor start...");
             this.notificationsManager = notificationsManager;
+            logger.LogDebug($"DeliveryStatusManager constructor finish.");
         }
 
         public async Task UpdateDeliveryStatusAsync(StatusUpdatePayload statusUpdate)
@@ -20,11 +25,11 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             try
             {
                 await UpdateStatusAsync(statusUpdate);
-                Console.WriteLine($"[v] Updates status of {JsonSerializer.Serialize(statusUpdate.Notification)}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine($"[XXX] Error during updating status.");
+                logger.LogError(ex, $"Error during updating notification status.");
+                logger.LogDebug($"Error during updating notification status {JsonSerializer.Serialize(statusUpdate)}.");
                 throw;
             }
 

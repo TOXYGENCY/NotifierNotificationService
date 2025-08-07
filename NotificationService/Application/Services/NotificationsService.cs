@@ -14,9 +14,9 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         public NotificationsService(INotificationsRepository notificationsRepository,
             ILogger<NotificationsService> logger)
         {
+            this.logger = logger;
             logger.LogDebug($"NotificationsService constructor start...");
             this.notificationsRepository = notificationsRepository;
-            this.logger = logger;
             logger.LogDebug($"NotificationsService constructor finish.");
         }
         public async Task<Notification> AddNotificationAsync(NotificationDto newNotificationDto)

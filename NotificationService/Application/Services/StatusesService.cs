@@ -17,10 +17,10 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         public StatusesService(IStatusesRepository statusesRepository, 
             IAnalyticsManager analyticsManager, ILogger<StatusesService> logger)
         {
+            this.logger = logger;
             logger.LogDebug($"StatusesService constructor start...");
             this.statusesRepository = statusesRepository;
             this.analyticsManager = analyticsManager;
-            this.logger = logger;
             logger.LogDebug($"StatusesService constructor finish.");
         }
 
