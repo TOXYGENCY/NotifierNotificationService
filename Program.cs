@@ -8,13 +8,11 @@ using NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 using NotifierNotificationService.NotificationService.Infrastructure;
 using NotifierNotificationService.NotificationService.Infrastructure.Repositories;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.Loki;
 using StackExchange.Redis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Xml.Linq;
 
 
 namespace NotifierNotificationService
@@ -22,10 +20,10 @@ namespace NotifierNotificationService
     public class Program
     {
         public static void Main(string[] args)
-        { 
-            static LoggerConfiguration ConfigureLogger(LoggerConfiguration cfg, 
-                string outputTemplate, string filename, 
-                LogEventLevel fileMinimumLvl = LogEventLevel.Warning, 
+        {
+            static LoggerConfiguration ConfigureLogger(LoggerConfiguration cfg,
+                string outputTemplate, string filename,
+                LogEventLevel fileMinimumLvl = LogEventLevel.Warning,
                 LogEventLevel consoleMinimumLvl = LogEventLevel.Information)
             {
                 cfg.MinimumLevel.Override("Microsoft", LogEventLevel.Error) // Только ошибки из Microsoft-сервисов
@@ -60,7 +58,7 @@ namespace NotifierNotificationService
                 }
             }
 
-            var tempLoggerOutputTemplate = 
+            var tempLoggerOutputTemplate =
                 "[NOTIFICATION.SVC STARTUP LOGGER] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
             var tempLogFilename = "logs/notification-startup-log.txt";
             // Временный логгер для этапа до создания билдера

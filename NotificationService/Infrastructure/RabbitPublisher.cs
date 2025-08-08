@@ -2,7 +2,6 @@
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
-using System.Text.Unicode;
 
 namespace NotifierNotificationService.NotificationService.Infrastructure
 {
@@ -33,12 +32,12 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
             using var conn = await connfact.CreateConnectionAsync();
             using var channel = await conn.CreateChannelAsync();
 
-            await channel.QueueDeclareAsync(queue: queue, durable: false, 
+            await channel.QueueDeclareAsync(queue: queue, durable: false,
                 exclusive: false, autoDelete: false, arguments: null);
-            
+
             string json = JsonSerializer.Serialize(content);
             var body = Encoding.UTF8.GetBytes(json);
-            
+
             await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queue, body: body);
 
         }

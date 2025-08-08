@@ -49,7 +49,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
             }
             else
             {
-                var mes = 
+                var mes =
                     $"Created Notification ({nameof(newNotification)}) is null. Cannot create status and send message.";
                 logger.LogError(mes);
                 throw new ArgumentNullException(mes);

@@ -55,7 +55,7 @@ namespace NotifierNotificationService.NotificationService.Infrastructure.Reposit
         public Task<Notification?> GetByUsersAndTimestamp(Guid senderId, Guid recipientId, DateTime createdAt)
         {
             return context.Notifications.FirstOrDefaultAsync(n => n.SenderUserId == senderId &&
-                                                                  n.RecipientUserId == recipientId && 
+                                                                  n.RecipientUserId == recipientId &&
                                                                   n.CreatedAt == createdAt);
         }
     }

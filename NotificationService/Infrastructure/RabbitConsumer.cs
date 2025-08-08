@@ -21,7 +21,7 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
         private AsyncEventingBasicConsumer consumer;
         private readonly ILogger<RabbitConsumer> logger;
 
-        public RabbitConsumer(IConfiguration configuration, IServiceScopeFactory scopeFactory, 
+        public RabbitConsumer(IConfiguration configuration, IServiceScopeFactory scopeFactory,
             ILogger<RabbitConsumer> logger)
         {
             this.logger = logger;
@@ -91,7 +91,7 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
                 var message = Encoding.UTF8.GetString(body);
                 logger.LogInformation($"Received {message}.");
 
-                
+
                 var statusUpdate = JsonSerializer.Deserialize<StatusUpdatePayload>(message);
                 if (statusUpdate == null)
                 {

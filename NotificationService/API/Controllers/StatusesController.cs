@@ -127,7 +127,7 @@ namespace NotifierNotificationService.NotificationService.API.Controllers
                 return StatusCode(StatusCodes.Status404NotFound,
                     "Статус не найден.");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 logger.LogError(ex, "An unexpected error occurred while updating the status");
                 return StatusCode(StatusCodes.Status500InternalServerError,

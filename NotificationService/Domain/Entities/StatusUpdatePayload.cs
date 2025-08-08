@@ -1,5 +1,4 @@
 ﻿using NotifierNotificationService.NotificationService.API.Dto;
-using System.Text.Json.Serialization;
 
 namespace NotifierNotificationService.NotificationService.Domain.Entities
 {

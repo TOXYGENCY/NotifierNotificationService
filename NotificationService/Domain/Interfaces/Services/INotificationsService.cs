@@ -1,6 +1,5 @@
 ﻿using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
-using NotifierNotificationService.NotificationService.Infrastructure.Repositories;
 
 namespace NotifierNotificationService.NotificationService.Domain.Interfaces.Services
 {

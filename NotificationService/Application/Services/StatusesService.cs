@@ -1,5 +1,4 @@
-﻿using NotifierNotificationService.NotificationService.API.Controllers;
-using NotifierNotificationService.NotificationService.API.Dto;
+﻿using NotifierNotificationService.NotificationService.API.Dto;
 using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
@@ -14,7 +13,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         private readonly IAnalyticsManager analyticsManager;
         private readonly ILogger<StatusesService> logger;
 
-        public StatusesService(IStatusesRepository statusesRepository, 
+        public StatusesService(IStatusesRepository statusesRepository,
             IAnalyticsManager analyticsManager, ILogger<StatusesService> logger)
         {
             this.logger = logger;

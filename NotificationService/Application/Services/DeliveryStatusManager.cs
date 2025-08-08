@@ -9,7 +9,7 @@ namespace NotifierNotificationService.NotificationService.Application.Services
         private readonly INotificationsManager notificationsManager;
         private readonly ILogger<DeliveryStatusManager> logger;
 
-        public DeliveryStatusManager(INotificationsManager notificationsManager, 
+        public DeliveryStatusManager(INotificationsManager notificationsManager,
             ILogger<DeliveryStatusManager> logger)
         {
             this.logger = logger;

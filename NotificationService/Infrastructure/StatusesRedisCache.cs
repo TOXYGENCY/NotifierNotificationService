@@ -14,7 +14,7 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
         private string keyCategory;
         private string keyPattern;
 
-        public StatusesRedisCache(IDatabase redis, IConfiguration config, 
+        public StatusesRedisCache(IDatabase redis, IConfiguration config,
             ILogger<StatusesRedisCache> logger)
         {
             this.redis = redis;
@@ -52,7 +52,8 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
                         logger.LogError(ex, $"Could not deserialize from key {key}: {statusJson}");
                     }
                 }
-            };
+            }
+            ;
 
             return statuses;
         }
@@ -72,7 +73,8 @@ namespace NotifierNotificationService.NotificationService.Infrastructure
                     logger.LogError(ex, $"Could not deserialize from key {statusKey}: {statusJson}");
                     return null;
                 }
-            } else
+            }
+            else
             {
                 return null;
             }

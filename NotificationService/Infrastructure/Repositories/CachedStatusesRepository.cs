@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NotifierNotificationService.NotificationService.Domain.Entities;
+﻿using NotifierNotificationService.NotificationService.Domain.Entities;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Repositories;
 using NotifierNotificationService.NotificationService.Domain.Interfaces.Services;
 
