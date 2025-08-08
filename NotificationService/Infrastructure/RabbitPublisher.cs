@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace NotifierNotificationService.NotificationService.Infrastructure
 {
-    public class RabbitPublisher : IRabbitPublisher
+    public class RabbitPublisher : IMessageBrokerPublisher
     {
         private readonly IConfiguration config;
         private string queue;

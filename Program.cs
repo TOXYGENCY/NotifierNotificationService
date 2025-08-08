@@ -113,7 +113,7 @@ namespace NotifierNotificationService
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen();
                 builder.Services.AddHostedService<RabbitConsumer>();
-                builder.Services.AddSingleton<IRabbitPublisher, RabbitPublisher>();
+                builder.Services.AddSingleton<IMessageBrokerPublisher, RabbitPublisher>();
                 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
                 builder.Services.AddScoped<IUsersService, UsersService>();
                 builder.Services.AddScoped<INotificationsRepository, NotificationsRepository>();

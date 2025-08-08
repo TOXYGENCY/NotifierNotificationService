@@ -9,11 +9,11 @@ namespace NotifierNotificationService.NotificationService.Application.Services
     {
         private readonly INotificationsService notificationsService;
         private readonly IStatusesService statusesService;
-        private readonly IRabbitPublisher rabbitmq;
+        private readonly IMessageBrokerPublisher rabbitmq;
         private readonly ILogger<NotificationsManager> logger;
 
         public NotificationsManager(INotificationsService notificationsService,
-            IStatusesService statusesService, IRabbitPublisher rabbitmq, ILogger<NotificationsManager> logger)
+            IStatusesService statusesService, IMessageBrokerPublisher rabbitmq, ILogger<NotificationsManager> logger)
         {
             this.logger = logger;
             logger.LogDebug($"NotificationsManager constructor start...");
