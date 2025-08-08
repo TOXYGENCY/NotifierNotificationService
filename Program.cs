@@ -46,7 +46,7 @@ namespace NotifierNotificationService
             {
                 var sect = serilogConfig.GetSection("WriteTo");
                 var globalLvl = serilogConfig.GetValue<string>("MinimumLevel:Default");
-                Log.Logger.Information($"Logging level globally is set to {globalLvl}");
+                Log.Information($"Logging level globally is set to {globalLvl}");
 
                 foreach (var sink in sect.GetChildren())
                 {
@@ -54,7 +54,7 @@ namespace NotifierNotificationService
                     var lvl = sink.GetValue<string>("Args:restrictedToMinimumLevel");
                     if (string.IsNullOrEmpty(lvl)) lvl = $"{globalLvl} (inherited)";
 
-                    Log.Logger.Information($"Logging level for sink {name} is set to {lvl}");
+                    Log.Information($"Logging level for sink {name} is set to {lvl}");
                 }
             }
 
@@ -98,10 +98,6 @@ namespace NotifierNotificationService
                                 new LokiLabel("app_full","notifier_full")
                             ]
                         });
-                    var loggerOutputTemplate =
-                        "[NOTIFICATION.SVC] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
-                    var logFilename = "logs/notification-startup-log.txt";
-                    ConfigureLogger(serilogConfig, loggerOutputTemplate, logFilename);
                 });
 
                 var connectionString = builder.Configuration.GetConnectionString("Main");
